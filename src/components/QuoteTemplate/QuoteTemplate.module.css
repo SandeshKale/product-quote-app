@@ -1,0 +1,35 @@
+.template {
+  width: 900px; background: #ffffff; font-family: 'Manrope', sans-serif;
+  color: #1a202c; padding: 0; border: 1px solid #e2e8f0;
+}
+.header {
+  background: #1a365d; color: white; padding: 28px 36px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.appName { font-family: 'Crimson Pro', Georgia, serif; font-size: 1.6rem; font-weight: 700; color: white; }
+.headerMeta { display: flex; gap: 32px; }
+.metaItem { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.metaLabel { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.7); font-weight: 600; }
+.metaValue { font-size: 0.85rem; font-weight: 700; color: white; }
+.table { width: 100%; border-collapse: collapse; }
+.tableHead { background: #f0f4f8; }
+.tableHead th { padding: 10px 14px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #4a5568; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+.tableRow { border-bottom: 1px solid #e2e8f0; }
+.tableRow:nth-child(even) { background: #f8fafc; }
+.thSr, .tdSr { width: 36px; text-align: center; padding: 10px 8px; }
+.thCode, .tdCode { width: 120px; font-family: monospace; font-size: 0.78rem; padding: 10px 14px; color: #4a5568; }
+.thName, .tdName { padding: 10px 14px; }
+.thQty, .tdQty { width: 48px; text-align: center; padding: 10px 8px; font-weight: 700; }
+.thAmount, .tdAmount { width: 110px; text-align: right; padding: 10px 14px; }
+.itemName { display: block; font-size: 0.82rem; font-weight: 600; color: #1a202c; margin-bottom: 2px; }
+.itemCategory { display: block; font-size: 0.68rem; color: #718096; }
+.lineTotal { font-weight: 700; color: #1a365d; }
+.totalsSection { background: #f0f4f8; padding: 20px 36px; border-top: 2px solid #1a365d; }
+.totalsGrid { display: flex; flex-direction: column; gap: 8px; max-width: 360px; margin-left: auto; }
+.totalRow { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
+.totalLabel { color: #4a5568; }
+.totalValue { font-weight: 600; color: #1a202c; }
+.totalRowFinal { padding-top: 10px; border-top: 2px solid #1a365d; margin-top: 4px; }
+.finalValue { font-size: 1rem; font-weight: 800; color: #1a365d; }
+.footer { padding: 14px 36px; background: #1a365d; text-align: center; }
+.footerText { font-size: 0.72rem; color: rgba(255,255,255,0.7); }

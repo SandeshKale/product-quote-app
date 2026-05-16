@@ -1,0 +1,34 @@
+.sidebar {
+  width: var(--sidebar-width); min-width: var(--sidebar-width);
+  background: var(--surface); border-right: 1px solid var(--border);
+  overflow-y: auto; height: 100%; display: flex; flex-direction: column;
+}
+.sidebarHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0;
+  background: var(--surface); z-index: 1;
+}
+.sidebarTitle { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem; color: var(--text-primary); }
+.sidebarActions { display: flex; align-items: center; gap: 8px; }
+.clearBtn { font-size: 0.75rem; color: var(--accent); font-weight: 600; background: none; text-decoration: underline; }
+.closeBtn { display: none; background: none; color: var(--text-muted); }
+.section { padding: 16px; border-bottom: 1px solid var(--border); }
+.sectionTitle { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.checkboxList, .radioList { display: flex; flex-direction: column; gap: 8px; }
+.checkboxLabel, .radioLabel { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-primary); cursor: pointer; }
+.checkboxLabel:hover, .radioLabel:hover { color: var(--primary); }
+.checkbox, .radio { accent-color: var(--primary); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+.rangeInputs { display: flex; align-items: center; gap: 8px; }
+.rangeInput { flex: 1; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 8px; font-size: 0.8rem; color: var(--text-primary); background: var(--surface-raised); font-family: var(--font-body); width: 0; }
+.rangeInput:focus { outline: none; border-color: var(--border-focus); }
+.rangeSep { color: var(--text-muted); font-size: 0.8rem; flex-shrink: 0; }
+.overlay { display: none; }
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; left: 0; top: 0; height: 100%; z-index: 200;
+    transform: translateX(-100%); transition: transform 0.25s ease; width: 280px; box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; }
+  .closeBtn { display: flex; }
+}
