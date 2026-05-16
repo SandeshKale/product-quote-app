@@ -70,7 +70,7 @@ export default function FilterSidebar({
           </div>
         </div>
 
-        {/* Stock Status — prominent at top */}
+        {/* Stock Status */}
         <Section title="Stock Status">
           <div className={styles.checkboxList}>
             {STOCK_STATUS_OPTIONS.map(({ value, label }) => (
@@ -104,30 +104,30 @@ export default function FilterSidebar({
           </div>
         </Section>
 
-        {/* Dimensions dropdown — only when data exists */}
+        {/* Dimensions — multi-select with checkboxes in a scrollable box (#7) */}
         {availableDimensions.length > 0 && (
-          <Section title="Dimensions">
-            <select
-              className={styles.dimSelect}
-              multiple
-              value={filters.dimensions}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, (o) => o.value);
-                setFilters((p) => ({ ...p, dimensions: selected }));
-              }}
-            >
+          <Section
+            title={`Dimensions${filters.dimensions.length > 0 ? ` (${filters.dimensions.length})` : ''}`}
+          >
+            <div className={styles.dimBox}>
               {availableDimensions.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
+                <label key={d} className={styles.dimOption}>
+                  <input
+                    type="checkbox"
+                    checked={filters.dimensions.includes(d)}
+                    onChange={() => toggle('dimensions', d)}
+                  />
+                  <span>{d}</span>
+                </label>
               ))}
-            </select>
+            </div>
             {filters.dimensions.length > 0 && (
               <button
                 className={styles.clearBtn}
+                style={{ marginTop: 6 }}
                 onClick={() => setFilters((p) => ({ ...p, dimensions: [] }))}
               >
-                Clear
+                Clear dimensions
               </button>
             )}
           </Section>
@@ -205,7 +205,6 @@ function RangeInputs({ min, max, placeholderMin, placeholderMax, onMin, onMax })
 }
 
 const rangeShape = PropTypes.shape({ min: PropTypes.number, max: PropTypes.number });
-
 FilterSidebar.propTypes = {
   filters: PropTypes.shape({
     categories: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -232,5 +231,4 @@ RangeInputs.propTypes = {
   onMin: PropTypes.func.isRequired,
   onMax: PropTypes.func.isRequired,
 };
-
 FilterSidebar.displayName = 'FilterSidebar';

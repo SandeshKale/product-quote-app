@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'lcov', 'html'],
-        exclude: ['src/main.jsx', '*.config.js', 'src/setupTests.js'],
+        exclude: ['src/main.jsx', '*.config.js', 'src/setupTests.js', 'api/**', '**/.eslintrc.cjs'],
         thresholds: {
           global: {
             branches: 80,

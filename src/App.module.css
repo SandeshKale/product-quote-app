@@ -6,22 +6,32 @@
 
 .body {
   display: flex;
-  flex: 1;
-  /* Height so sticky children know their scroll container */
+  /* Fixed height so children can use height:100% */
   height: calc(100vh - var(--header-height) - var(--quote-bar-height));
-  overflow: hidden;
+  overflow: hidden; /* clips sidebar/main but MUST NOT block their internal sticky */
 }
 
+/* ── Sidebar (#21) ──────────────────────────────────────────────────────────
+   NO position:sticky here — sticky inside overflow:hidden is ignored.
+   The sidebar pins naturally because .body has fixed height + overflow:hidden.
+   sidebar just fills that height and scrolls independently.               */
+/* (sidebar CSS lives in FilterSidebar.module.css — see that file)         */
+
+/* ── Main column ─────────────────────────────────────────────────────────── */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* .main is the scroll container for the product list.
+     SearchArea with position:sticky works INSIDE this scroll container.   */
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .mobileBar {
   display: none;
   padding: 10px 14px 0;
+  flex-shrink: 0;
 }
 .filterToggle {
   display: flex;
@@ -37,18 +47,22 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* SearchArea is sticky inside .main (the scroll container) (#9) */
 .searchArea {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--background);
   padding: 12px 18px 6px;
   flex-shrink: 0;
 }
 
+/* Results scroll naturally inside .main — no overflow needed here */
 .results {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2px 18px 18px;
+  padding: 2px 18px 80px;
 }
 
-/* Quote bar — always pinned to the very bottom (#1) */
+/* Quote bar — position:fixed to bottom viewport (#1) */
 .quoteBar {
   position: fixed;
   bottom: 0;
@@ -62,7 +76,6 @@
   align-items: center;
   z-index: 90;
 }
-
 .quoteBarContent {
   display: flex;
   align-items: center;
@@ -71,13 +84,11 @@
   padding: 0 20px;
   gap: 14px;
 }
-
 .quoteBarSummary {
   font-size: 0.84rem;
   color: var(--text-secondary);
   flex: 1;
 }
-
 .viewQuoteBtn {
   display: flex;
   align-items: center;
@@ -100,7 +111,6 @@
   cursor: not-allowed;
   background: var(--text-muted);
 }
-
 .badge {
   background: var(--accent);
   color: white;
@@ -112,15 +122,7 @@
   text-align: center;
 }
 
-/* Push main content up so quote bar doesn't overlap it */
-.body {
-  padding-bottom: 0;
-}
-
 @media (max-width: 768px) {
-  .body {
-    height: calc(100vh - var(--header-height) - var(--quote-bar-height));
-  }
   .mobileBar {
     display: block;
   }
@@ -128,7 +130,7 @@
     padding: 8px 14px 4px;
   }
   .results {
-    padding: 0 14px 14px;
+    padding: 0 14px 80px;
   }
   .quoteBarContent {
     padding: 0 14px;

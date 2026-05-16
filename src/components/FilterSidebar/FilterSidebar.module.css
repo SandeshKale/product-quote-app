@@ -1,17 +1,19 @@
-/* Sidebar is position:sticky so it pins to its column on scroll (#21) */
+/* ── Sidebar pin fix (#1 / #21) ─────────────────────────────────────────────
+   position:sticky inside overflow:hidden is silently ignored by the browser.
+   The fix: the sidebar fills .body's fixed height and scrolls independently.
+   No sticky needed — .body's overflow:hidden keeps it locked in place.      */
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
+  flex-shrink: 0;
+  height: 100%; /* fills .body's fixed height */
+  overflow-y: auto; /* sidebar scrolls independently */
   background: var(--surface);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
-  position: sticky;
-  top: var(--header-height);
-  height: calc(100vh - var(--header-height) - var(--quote-bar-height));
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
 }
+
 .sidebarHeader {
   display: flex;
   align-items: center;
@@ -19,7 +21,7 @@
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 0;
+  top: 0; /* sticks to top of sidebar scroll */
   background: var(--surface);
   z-index: 1;
 }
@@ -84,22 +86,40 @@
   flex-shrink: 0;
   cursor: pointer;
 }
-.dimSelect {
-  width: 100%;
+.discontinued {
+  color: var(--error);
+}
+
+/* Dimensions multi-select (#7) — checkboxes inside a scrollable box */
+.dimBox {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  background: var(--surface-raised);
+}
+.dimOption {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
   font-size: 0.8rem;
   color: var(--text-primary);
-  background: var(--surface-raised);
-  font-family: var(--font-body);
-  min-height: 80px;
   cursor: pointer;
-  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
 }
-.dimSelect option {
-  padding: 4px;
+.dimOption:last-child {
+  border-bottom: none;
 }
+.dimOption:hover {
+  background: rgba(26, 54, 93, 0.04);
+}
+.dimOption input {
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .rangeInputs {
   display: flex;
   align-items: center;
@@ -154,8 +174,4 @@
   .closeBtn {
     display: flex;
   }
-}
-
-.discontinued {
-  color: var(--error);
 }

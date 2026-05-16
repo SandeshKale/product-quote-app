@@ -2,16 +2,17 @@ import { useState, useCallback, useMemo } from 'react';
 import { GST_RATE } from '../constants/columnMap';
 
 /**
- * Manages quote cart.
+ * Manages quote cart with per-item margin overrides.
  *
- * Margin slider formula (from updated Excel):
- *   newPostTax = avgLanding / (1 - newMarginDecimal)
- *   newPreTax  = newPostTax / (1 + GST_RATE)   ← GST_RATE = 0.18 (hardcoded)
+ * Margin slider formula (Excel):
+ *   adjPostTax = avgLanding / (1 - margin)
+ *   adjPreTax  = adjPostTax / (1 + GST_RATE)   [GST hardcoded at 18%]
  *
- * marginPercent and avgLanding must never appear in QuoteTemplate or totals.
+ * marginPercent and avgLanding MUST NEVER appear in QuoteTemplate or totals.
  */
 export function useQuote() {
   const [items, setItems] = useState([]);
+  const [marginOverrides, setMarginOverrides] = useState({}); // { [articleCode]: 0-99 (%) }
 
   const addItem = useCallback((product) => {
     setItems((prev) => {
@@ -27,13 +28,22 @@ export function useQuote() {
 
   const removeItem = useCallback((articleCode) => {
     setItems((prev) => prev.filter((i) => i.product.articleCode !== articleCode));
+    setMarginOverrides((prev) => {
+      const next = { ...prev };
+      delete next[articleCode];
+      return next;
+    });
   }, []);
 
   const updateQuantity = useCallback((articleCode, quantity) => {
     const qty = Math.floor(quantity);
     if (qty <= 0) {
-      // Remove item when qty drops to 0 (#4)
       setItems((prev) => prev.filter((i) => i.product.articleCode !== articleCode));
+      setMarginOverrides((prev) => {
+        const n = { ...prev };
+        delete n[articleCode];
+        return n;
+      });
       return;
     }
     setItems((prev) =>
@@ -41,8 +51,67 @@ export function useQuote() {
     );
   }, []);
 
-  const clearQuote = useCallback(() => setItems([]), []);
+  /** Set per-item margin override (value in %, e.g. 20 = 20%) */
+  const setItemMargin = useCallback((articleCode, marginPct) => {
+    setMarginOverrides((prev) => ({ ...prev, [articleCode]: marginPct }));
+  }, []);
 
+  /** Reset a single item's margin to the Excel value */
+  const resetItemMargin = useCallback((articleCode) => {
+    setMarginOverrides((prev) => {
+      const n = { ...prev };
+      delete n[articleCode];
+      return n;
+    });
+  }, []);
+
+  const clearQuote = useCallback(() => {
+    setItems([]);
+    setMarginOverrides({});
+  }, []);
+
+  /** Compute adjusted price for one item given a margin decimal (0-0.99) */
+  function adjPrices(product, marginDecimal) {
+    const m = Math.min(Math.max(marginDecimal, 0), 0.99);
+    const postTax =
+      product.avgLanding > 0 ? product.avgLanding / (1 - m) : product.dealerPricePostTax;
+    return {
+      adjDealerPostTax: postTax,
+      adjDealerPreTax: postTax / (1 + GST_RATE),
+    };
+  }
+
+  /**
+   * Items enriched with adjusted prices, using per-item margin overrides.
+   * Falls back to the product's original Excel margin when no override set.
+   */
+  const enrichedItems = useMemo(
+    () =>
+      items.map(({ product, quantity }) => {
+        const overridePct = marginOverrides[product.articleCode];
+        const effectiveMarginDecimal =
+          overridePct != null ? overridePct / 100 : product.marginPercent;
+        const { adjDealerPostTax, adjDealerPreTax } = adjPrices(product, effectiveMarginDecimal);
+        const isOverridden = overridePct != null;
+        return {
+          product,
+          quantity,
+          effectiveMarginPct: Math.round(effectiveMarginDecimal * 100),
+          effectiveMarginDec: effectiveMarginDecimal,
+          adjDealerPostTax,
+          adjDealerPreTax,
+          origDealerPostTax: product.dealerPricePostTax,
+          origDealerPreTax: product.dealerPricePreTax,
+          origMarginPct: Math.round(product.marginPercent * 100),
+          isOverridden,
+          adjLineTotal: adjDealerPostTax * quantity,
+          origLineTotal: product.dealerPricePostTax * quantity,
+        };
+      }),
+    [items, marginOverrides]
+  );
+
+  /** Standard totals using original Excel prices — no margin fields */
   const totals = useMemo(
     () =>
       items.reduce(
@@ -57,64 +126,80 @@ export function useQuote() {
     [items]
   );
 
-  /**
-   * Returns items with adjusted dealer prices for a given margin %.
-   * Uses the Excel formula: PostTax = AvgLanding/(1-m), PreTax = PostTax/1.18
-   */
-  const getAdjustedItems = useCallback(
-    (marginPercent) => {
-      return items.map(({ product, quantity }) => {
-        const m = Math.min(Math.max(marginPercent / 100, 0), 0.99);
-        const adjPostTax =
-          product.avgLanding > 0 ? product.avgLanding / (1 - m) : product.dealerPricePostTax;
-        const adjPreTax = adjPostTax / (1 + GST_RATE);
-        return {
-          ...product,
-          quantity,
-          origDealerPostTax: product.dealerPricePostTax,
-          origDealerPreTax: product.dealerPricePreTax,
-          origMarginPercent: product.marginPercent,
-          adjDealerPostTax: adjPostTax,
-          adjDealerPreTax: adjPreTax,
-          adjMarginPercent: m,
-          adjLineTotal: adjPostTax * quantity,
-          origLineTotal: product.dealerPricePostTax * quantity,
-        };
-      });
-    },
-    [items]
+  /** Adjusted totals using per-item margin overrides */
+  const adjustedTotals = useMemo(
+    () =>
+      enrichedItems.reduce(
+        (acc, i) => ({
+          totalMRP: acc.totalMRP + i.product.mrp * i.quantity,
+          totalRRP: acc.totalRRP + i.product.rrp * i.quantity,
+          totalDealerPreTax: acc.totalDealerPreTax + i.adjDealerPreTax * i.quantity,
+          totalDealerPostTax: acc.totalDealerPostTax + i.adjDealerPostTax * i.quantity,
+        }),
+        { totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }
+      ),
+    [enrichedItems]
   );
 
-  // Items for QuoteTemplate — sensitive fields stripped
+  /**
+   * Weighted average effective margin across all items:
+   *   = 1 - sum(avgLanding_i × qty_i) / sum(adjPostTax_i × qty_i)
+   */
+  const weightedMarginPct = useMemo(() => {
+    const totalLanding = enrichedItems.reduce(
+      (s, i) => s + (i.product.avgLanding || i.origDealerPostTax) * i.quantity,
+      0
+    );
+    const totalAdj = enrichedItems.reduce((s, i) => s + i.adjDealerPostTax * i.quantity, 0);
+    if (totalAdj === 0) return 0;
+    return Math.round((1 - totalLanding / totalAdj) * 100);
+  }, [enrichedItems]);
+
+  const hasAnyOverride = useMemo(() => Object.keys(marginOverrides).length > 0, [marginOverrides]);
+
+  /** Items for QuoteTemplate — sensitive fields stripped */
   const quoteTemplateItems = useMemo(
     () =>
-      items.map(({ product, quantity }) => ({
-        serialNo: product.serialNo,
-        articleCode: product.articleCode,
-        articleName: product.articleName,
-        category: product.category,
-        dimensions: product.dimensions,
-        stockStatus: product.stockStatus,
-        mrp: product.mrp,
-        rrp: product.rrp,
-        dealerPricePreTax: product.dealerPricePreTax,
-        dealerPricePostTax: product.dealerPricePostTax,
-        quantity,
-        lineTotal: product.dealerPricePostTax * quantity,
+      enrichedItems.map((ei) => ({
+        serialNo: ei.product.serialNo,
+        articleCode: ei.product.articleCode,
+        articleName: ei.product.articleName,
+        category: ei.product.category,
+        dimensions: ei.product.dimensions,
+        stockStatus: ei.product.stockStatus,
+        mrp: ei.product.mrp,
+        rrp: ei.product.rrp,
+        dealerPricePreTax: ei.adjDealerPreTax,
+        dealerPricePostTax: ei.adjDealerPostTax,
+        quantity: ei.quantity,
+        lineTotal: ei.adjLineTotal,
+        origDealerPreTax: ei.origDealerPreTax,
+        origDealerPostTax: ei.origDealerPostTax,
+        origLineTotal: ei.origLineTotal,
+        adjDealerPreTax: ei.adjDealerPreTax,
+        adjDealerPostTax: ei.adjDealerPostTax,
+        adjLineTotal: ei.adjLineTotal,
+        isOverridden: ei.isOverridden,
         // marginPercent and avgLanding intentionally absent
       })),
-    [items]
+    [enrichedItems]
   );
 
   return {
     items,
+    enrichedItems,
     totals,
+    adjustedTotals,
     quoteTemplateItems,
+    marginOverrides,
+    weightedMarginPct,
+    hasAnyOverride,
     addItem,
     removeItem,
     updateQuantity,
     clearQuote,
-    getAdjustedItems,
+    setItemMargin,
+    resetItemMargin,
     itemCount: items.length,
   };
 }

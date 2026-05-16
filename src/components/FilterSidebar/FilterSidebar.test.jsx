@@ -66,7 +66,8 @@ describe('FilterSidebar', () => {
   it('shows Dimensions dropdown when data present', () => {
     render(<FilterSidebar {...baseProps} />);
     expect(screen.getByText('Dimensions')).toBeInTheDocument();
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    // Dimensions now uses checkboxes in a scrollable box (no listbox)
+    expect(screen.getByText('Chimney - 90cm')).toBeInTheDocument();
   });
 
   it('hides Dimensions when no data', () => {

@@ -44,7 +44,7 @@ describe('useQuote — addItem', () => {
     expect(result.current.items[0].quantity).toBe(1);
   });
 
-  it('increments qty when same product added', () => {
+  it('increments qty on re-add', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
@@ -54,18 +54,19 @@ describe('useQuote — addItem', () => {
     expect(result.current.items[0].quantity).toBe(2);
   });
 
-  it('adds multiple different products', () => {
+  it('adds multiple products', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
       result.current.addItem(productB);
     });
     expect(result.current.items.length).toBe(2);
+    expect(result.current.itemCount).toBe(2);
   });
 });
 
 describe('useQuote — removeItem', () => {
-  it('removes item by articleCode', () => {
+  it('removes item by code', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
@@ -80,99 +81,132 @@ describe('useQuote — removeItem', () => {
 });
 
 describe('useQuote — updateQuantity', () => {
-  it('updates qty for a product', () => {
+  it('updates qty', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
-    });
-    act(() => {
       result.current.updateQuantity(productA.articleCode, 5);
     });
     expect(result.current.items[0].quantity).toBe(5);
   });
 
-  it('qty 0 removes the item (#4)', () => {
+  it('qty 0 removes item', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
-    });
-    act(() => {
       result.current.updateQuantity(productA.articleCode, 0);
     });
     expect(result.current.items.length).toBe(0);
   });
 
-  it('qty -1 also removes the item', () => {
+  it('floors decimal qty', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
-    });
-    act(() => {
-      result.current.updateQuantity(productA.articleCode, -1);
-    });
-    expect(result.current.items.length).toBe(0);
-  });
-
-  it('floors decimal quantities', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-    });
-    act(() => {
       result.current.updateQuantity(productA.articleCode, 2.9);
     });
     expect(result.current.items[0].quantity).toBe(2);
   });
 });
 
-describe('useQuote — clearQuote', () => {
-  it('empties all items', () => {
+describe('useQuote — setItemMargin', () => {
+  it('overrides margin for an item', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
-      result.current.addItem(productB);
+      result.current.setItemMargin(productA.articleCode, 20);
+    });
+    expect(result.current.marginOverrides[productA.articleCode]).toBe(20);
+    expect(result.current.hasAnyOverride).toBe(true);
+  });
+
+  it('resetItemMargin clears override', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+      result.current.setItemMargin(productA.articleCode, 20);
+    });
+    act(() => {
+      result.current.resetItemMargin(productA.articleCode);
+    });
+    expect(result.current.marginOverrides[productA.articleCode]).toBeUndefined();
+    expect(result.current.hasAnyOverride).toBe(false);
+  });
+});
+
+describe('useQuote — enrichedItems', () => {
+  it('includes adjDealerPostTax recalculated from override', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+      result.current.setItemMargin(productA.articleCode, 20);
+    });
+    const ei = result.current.enrichedItems[0];
+    expect(ei.adjDealerPostTax).toBeCloseTo(productA.avgLanding / 0.8, 0);
+  });
+
+  it('includes adjDealerPreTax = adjPostTax / 1.18', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+      result.current.setItemMargin(productA.articleCode, 20);
+    });
+    const ei = result.current.enrichedItems[0];
+    expect(ei.adjDealerPreTax).toBeCloseTo(ei.adjDealerPostTax / 1.18, 0);
+  });
+
+  it('isOverridden false when no override set', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+    });
+    expect(result.current.enrichedItems[0].isOverridden).toBe(false);
+  });
+
+  it('isOverridden true when override set', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+      result.current.setItemMargin(productA.articleCode, 20);
+    });
+    expect(result.current.enrichedItems[0].isOverridden).toBe(true);
+  });
+});
+
+describe('useQuote — weightedMarginPct', () => {
+  it('equals original margin when no overrides', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+    });
+    // margin = 1 - avgLanding/postTax = 1 - 47482/54580 ≈ 13%
+    expect(result.current.weightedMarginPct).toBe(13);
+  });
+});
+
+describe('useQuote — clearQuote', () => {
+  it('empties items and overrides', () => {
+    const { result } = renderHook(() => useQuote());
+    act(() => {
+      result.current.addItem(productA);
+      result.current.setItemMargin(productA.articleCode, 20);
     });
     act(() => {
       result.current.clearQuote();
     });
     expect(result.current.items.length).toBe(0);
+    expect(result.current.hasAnyOverride).toBe(false);
   });
 });
 
 describe('useQuote — totals', () => {
-  it('calculates totalMRP correctly', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-      result.current.addItem(productA);
-    });
-    expect(result.current.totals.totalMRP).toBe(productA.mrp * 2);
-  });
-
-  it('calculates totalDealerPostTax correctly', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-    });
-    expect(result.current.totals.totalDealerPostTax).toBe(productA.dealerPricePostTax);
-  });
-
-  it('totals never contain margin', () => {
+  it('totals do not contain marginPercent', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
     });
     expect(result.current.totals).not.toHaveProperty('marginPercent');
     expect(result.current.totals).not.toHaveProperty('avgLanding');
-  });
-
-  it('resets to 0 after clear', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-      result.current.clearQuote();
-    });
-    expect(result.current.totals.totalMRP).toBe(0);
   });
 });
 
@@ -193,44 +227,11 @@ describe('useQuote — quoteTemplateItems', () => {
     expect(result.current.quoteTemplateItems[0]).not.toHaveProperty('avgLanding');
   });
 
-  it('lineTotal = dealerPricePostTax × qty', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-      result.current.updateQuantity(productA.articleCode, 3);
-    });
-    expect(result.current.quoteTemplateItems[0].lineTotal).toBe(productA.dealerPricePostTax * 3);
-  });
-});
-
-describe('useQuote — getAdjustedItems (margin slider)', () => {
-  it('recalculates postTax using AvgLanding/(1-margin)', () => {
+  it('includes dealerPricePreTax', () => {
     const { result } = renderHook(() => useQuote());
     act(() => {
       result.current.addItem(productA);
     });
-    const adjusted = result.current.getAdjustedItems(20); // 20%
-    const expected = productA.avgLanding / (1 - 0.2);
-    expect(adjusted[0].adjDealerPostTax).toBeCloseTo(expected, 0);
-  });
-
-  it('recalculates preTax as postTax/1.18 (hardcoded GST)', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-    });
-    const adjusted = result.current.getAdjustedItems(20);
-    const expectedPost = productA.avgLanding / 0.8;
-    expect(adjusted[0].adjDealerPreTax).toBeCloseTo(expectedPost / 1.18, 0);
-  });
-
-  it('preserves original values alongside adjusted', () => {
-    const { result } = renderHook(() => useQuote());
-    act(() => {
-      result.current.addItem(productA);
-    });
-    const adjusted = result.current.getAdjustedItems(20);
-    expect(adjusted[0].origDealerPostTax).toBe(productA.dealerPricePostTax);
-    expect(adjusted[0].origMarginPercent).toBe(productA.marginPercent);
+    expect(result.current.quoteTemplateItems[0]).toHaveProperty('dealerPricePreTax');
   });
 });

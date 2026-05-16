@@ -7,119 +7,137 @@ import styles from './QuoteTemplate.module.css';
  * QuoteTemplate — captured by html2canvas for sharing.
  *
  * Rules:
- * - NO quote number (#18)
- * - NO marginPercent or cost ever rendered
- * - Totals appear below their respective column (#3)
- * - Dealer Pre-Tax shown per line item (#20)
- * - Shows original + adjusted values when slider is active (#19)
- * - Two template types: 'detailed' and 'simple' (#13)
+ * - NO quote number, NO marginPercent, NO cost/avgLanding, NO expiry
+ * - NO Line Total column (#4 removed)
+ * - Dealer Pre-Tax shown per line (#20)
+ * - Totals in <tfoot> aligned under each column (#3)
+ * - Simple template: plain table only, no header/footer, plain borders (#8)
+ * - Detailed template: full header, styled table, footer
  */
 const QuoteTemplate = forwardRef(function QuoteTemplate(
-  { quoteTitle, items, totals, templateType, sliderMarginPct },
+  { quoteTitle, items, totals, templateType, hasOverride },
   ref
 ) {
   const today = formatDateShort(new Date());
-  const sliderActive = sliderMarginPct != null;
   const isSimple = templateType === 'simple';
 
   return (
-    <div ref={ref} className={styles.template}>
-      {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>{quoteTitle}</h1>
-        <div className={styles.headerMeta}>
-          <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>Date</span>
-            <span className={styles.metaValue}>{today}</span>
-          </div>
-          {sliderActive && (
+    <div ref={ref} className={isSimple ? styles.templateSimple : styles.template}>
+      {/* Header — detailed only */}
+      {!isSimple && (
+        <div className={styles.header}>
+          <h1 className={styles.title}>{quoteTitle}</h1>
+          <div className={styles.headerMeta}>
             <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Margin Applied</span>
-              <span className={styles.metaValue}>{sliderMarginPct}%</span>
+              <span className={styles.metaLabel}>Date</span>
+              <span className={styles.metaValue}>{today}</span>
             </div>
-          )}
+            {hasOverride && (
+              <div className={styles.metaItem}>
+                <span className={styles.metaLabel}>Margin</span>
+                <span className={styles.metaValue}>Adjusted</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Items Table */}
-      <table className={styles.table}>
-        <thead>
-          <tr className={styles.thead}>
-            <th className={styles.thSr}>#</th>
-            <th className={styles.thCode}>Code</th>
-            <th className={styles.thName}>Product</th>
-            <th className={styles.thQty}>Qty</th>
-            <th className={styles.thAmt}>MRP</th>
-            <th className={styles.thAmt}>RRP</th>
-            {!isSimple && <th className={styles.thAmt}>Dealer Pre-Tax</th>}
-            <th className={styles.thAmt}>Dealer Post-Tax{sliderActive ? ' (Orig)' : ''}</th>
-            {sliderActive && <th className={styles.thAmt}>Dealer Post-Tax (Adj)</th>}
-            <th className={styles.thAmt}>Line Total</th>
-          </tr>
-        </thead>
+      {/* Table */}
+      <table className={isSimple ? styles.tableSimple : styles.table}>
+        {!isSimple && (
+          <thead>
+            <tr className={styles.thead}>
+              <th className={styles.thSr}>#</th>
+              <th className={styles.thCode}>Code</th>
+              <th className={styles.thName}>Product</th>
+              <th className={styles.thQty}>Qty</th>
+              <th className={styles.thAmt}>MRP</th>
+              <th className={styles.thAmt}>RRP</th>
+              <th className={styles.thAmt}>Dealer Pre-Tax</th>
+              <th className={styles.thAmt}>Dealer Post-Tax</th>
+            </tr>
+          </thead>
+        )}
+        {isSimple && (
+          <thead>
+            <tr className={styles.theadSimple}>
+              <th className={styles.thSrS}>#</th>
+              <th className={styles.thCodeS}>Code</th>
+              <th className={styles.thNameS}>Product</th>
+              <th className={styles.thQtyS}>Qty</th>
+              <th className={styles.thAmtS}>MRP</th>
+              <th className={styles.thAmtS}>RRP</th>
+              <th className={styles.thAmtS}>Dealer Pre-Tax</th>
+              <th className={styles.thAmtS}>Dealer Post-Tax</th>
+            </tr>
+          </thead>
+        )}
         <tbody>
           {items.map((item, idx) => (
             <tr
               key={item.articleCode || idx}
-              className={`${styles.trow} ${idx % 2 === 1 ? styles.trowAlt : ''}`}
+              className={
+                isSimple ? styles.trowS : `${styles.trow} ${idx % 2 === 1 ? styles.trowAlt : ''}`
+              }
             >
-              <td className={styles.tdSr}>{idx + 1}</td>
-              <td className={styles.tdCode}>{item.articleCode}</td>
-              <td className={styles.tdName}>
+              <td className={isSimple ? styles.tdSrS : styles.tdSr}>{idx + 1}</td>
+              <td className={isSimple ? styles.tdCodeS : styles.tdCode}>{item.articleCode}</td>
+              <td className={isSimple ? styles.tdNameS : styles.tdName}>
                 <span className={styles.itemName}>{item.articleName}</span>
-                <span className={styles.itemCat}>{item.category}</span>
-                {item.dimensions && <span className={styles.itemDim}>{item.dimensions}</span>}
+                {!isSimple && item.category && (
+                  <span className={styles.itemCat}>{item.category}</span>
+                )}
+                {!isSimple && item.dimensions && (
+                  <span className={styles.itemDim}>{item.dimensions}</span>
+                )}
               </td>
-              <td className={styles.tdQty}>{item.quantity}</td>
-              <td className={styles.tdAmt}>{formatCurrency(item.mrp)}</td>
-              <td className={styles.tdAmt}>{formatCurrency(item.rrp)}</td>
-              {!isSimple && (
-                <td className={styles.tdAmt}>
-                  {formatCurrency(item.origDealerPreTax ?? item.dealerPricePreTax)}
-                </td>
-              )}
-              <td className={styles.tdAmt}>
-                {formatCurrency(item.origDealerPostTax ?? item.dealerPricePostTax)}
+              <td className={isSimple ? styles.tdQtyS : styles.tdQty}>{item.quantity}</td>
+              <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
+                {formatCurrency(item.mrp)}
               </td>
-              {sliderActive && (
-                <td className={`${styles.tdAmt} ${styles.adjCell}`}>
-                  {formatCurrency(item.adjDealerPostTax)}
-                </td>
-              )}
-              <td className={`${styles.tdAmt} ${styles.lineTotal}`}>
-                {formatCurrency(item.adjLineTotal ?? item.lineTotal)}
+              <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
+                {formatCurrency(item.rrp)}
+              </td>
+              <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
+                {formatCurrency(item.dealerPricePreTax)}
+              </td>
+              <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
+                {formatCurrency(item.dealerPricePostTax)}
               </td>
             </tr>
           ))}
         </tbody>
         {/* Totals below their column (#3) */}
         <tfoot>
-          <tr className={styles.tfootRow}>
-            <td colSpan={isSimple ? 3 : 3} className={styles.tfootLabel}>
+          <tr className={isSimple ? styles.tfootRowS : styles.tfootRow}>
+            <td colSpan={3} className={isSimple ? styles.tfootLabelS : styles.tfootLabel}>
               TOTALS
             </td>
-            <td className={styles.tfootQty}>{items.reduce((s, i) => s + i.quantity, 0)}</td>
-            <td className={styles.tfootAmt}>{formatCurrency(totals.totalMRP)}</td>
-            <td className={styles.tfootAmt}>{formatCurrency(totals.totalRRP)}</td>
-            {!isSimple && (
-              <td className={styles.tfootAmt}>{formatCurrency(totals.totalDealerPreTax)}</td>
-            )}
-            <td className={styles.tfootAmt}>{formatCurrency(totals.totalDealerPostTax)}</td>
-            {sliderActive && (
-              <td className={`${styles.tfootAmt} ${styles.adjCell}`}>
-                {formatCurrency(totals.totalDealerPostTax)}
-              </td>
-            )}
-            <td className={`${styles.tfootAmt} ${styles.grandTotal}`}>
-              {formatCurrency(items.reduce((s, i) => s + (i.adjLineTotal ?? i.lineTotal), 0))}
+            <td className={isSimple ? styles.tfootQtyS : styles.tfootQty}>
+              {items.reduce((s, i) => s + i.quantity, 0)}
+            </td>
+            <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
+              {formatCurrency(totals.totalMRP)}
+            </td>
+            <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
+              {formatCurrency(totals.totalRRP)}
+            </td>
+            <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
+              {formatCurrency(totals.totalDealerPreTax)}
+            </td>
+            <td className={isSimple ? styles.tfootAmtS : `${styles.tfootAmt} ${styles.grandTotal}`}>
+              {formatCurrency(totals.totalDealerPostTax)}
             </td>
           </tr>
         </tfoot>
       </table>
 
-      <div className={styles.footer}>
-        <p className={styles.footerText}>Generated by {quoteTitle}</p>
-      </div>
+      {/* Footer — detailed only */}
+      {!isSimple && (
+        <div className={styles.footer}>
+          <p className={styles.footerText}>Generated by {quoteTitle}</p>
+        </div>
+      )}
     </div>
   );
 });
@@ -134,8 +152,7 @@ QuoteTemplate.propTypes = {
     totalDealerPostTax: PropTypes.number,
   }).isRequired,
   templateType: PropTypes.string,
-  sliderMarginPct: PropTypes.number,
+  hasOverride: PropTypes.bool,
 };
-
 QuoteTemplate.displayName = 'QuoteTemplate';
 export default QuoteTemplate;

@@ -9,7 +9,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 440px;
+  width: 460px;
   max-width: 100vw;
   background: var(--surface);
   z-index: 300;
@@ -26,11 +26,12 @@
   pointer-events: none;
   z-index: -1;
 }
+
 .panelHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -39,7 +40,7 @@
   align-items: center;
   gap: 7px;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
 }
 .panelActions {
@@ -61,23 +62,19 @@
   display: flex;
   align-items: center;
 }
-.closeBtn:hover {
-  color: var(--text-primary);
-}
 
-/* Title rename (#5) */
 .titleRow {
-  padding: 8px 18px;
+  padding: 7px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .titleDisplay {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .titleText {
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -94,41 +91,37 @@
   width: 100%;
   border: 1.5px solid var(--border-focus);
   border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  font-size: 0.85rem;
+  padding: 4px 8px;
+  font-size: 0.83rem;
   font-family: var(--font-body);
   color: var(--text-primary);
   background: var(--surface);
-}
-.titleInput:focus {
   outline: none;
 }
 
-/* Template type (#13) */
 .templateRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 18px;
+  padding: 7px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .templateLabel {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-right: 4px;
+  margin-right: 2px;
 }
 .templateBtn {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 100px;
   background: var(--border);
   color: var(--text-secondary);
-  transition: all 0.15s;
   cursor: pointer;
 }
 .templateBtnActive {
@@ -140,18 +133,19 @@
 .itemList {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .emptyState {
   text-align: center;
-  padding: 36px 16px;
+  padding: 32px 16px;
   color: var(--text-muted);
   font-size: 0.85rem;
   line-height: 1.8;
 }
+
 .item {
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -161,10 +155,18 @@
   flex-direction: column;
   gap: 8px;
 }
-.itemInfo {
+.itemOverridden {
+  border-color: var(--primary-light);
+  background: #f0f5ff;
+}
+[data-theme='dark'] .itemOverridden {
+  background: rgba(74, 127, 193, 0.08);
+}
+
+.itemHeader {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  justify-content: space-between;
 }
 .itemCode {
   font-size: 0.68rem;
@@ -174,16 +176,78 @@
 }
 .itemName {
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-primary);
   line-height: 1.3;
 }
-.itemMargin {
-  font-size: 0.7rem;
-  color: var(--success);
-  font-weight: 500;
+
+/* Price table: 3 cols — field labels, original, adjusted (#3 + #5) */
+.priceTable {
+  display: flex;
+  gap: 8px;
 }
-.itemControls {
+.priceCol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.priceHdr {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.priceVal {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.adjVal {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Per-item slider */
+.itemSlider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.itemSliderHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.marginVal {
+  color: var(--text-muted);
+}
+.marginValAdj {
+  color: var(--primary);
+  font-weight: 700;
+}
+.resetBtn {
+  background: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+.resetBtn:hover {
+  color: var(--error);
+}
+.slider {
+  width: 100%;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.itemFooter {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -191,7 +255,7 @@
 .qtyControl {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: var(--border);
   border-radius: var(--radius-sm);
   padding: 2px;
@@ -199,13 +263,12 @@
 .qtyBtn {
   background: var(--surface);
   color: var(--text-primary);
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s;
 }
 .qtyBtn:hover {
   background: var(--primary);
@@ -218,78 +281,65 @@
   text-align: center;
 }
 .lineTotal {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--text-primary);
-  flex: 1;
-  text-align: right;
+  margin-left: auto;
 }
 .removeBtn {
   background: none;
   color: var(--error);
   display: flex;
-  align-items: center;
   opacity: 0.7;
 }
 .removeBtn:hover {
   opacity: 1;
 }
 
-/* Margin slider (#11) */
-.sliderSection {
-  padding: 12px 18px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.sliderHeader {
+/* Weighted margin */
+.weightedRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
-.sliderValue {
+.weightedVal {
   color: var(--primary);
-  font-weight: 700;
-  flex: 1;
-}
-.slider {
-  width: 100%;
-  accent-color: var(--primary);
-  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.9rem;
 }
 
-/* Totals (#19) */
+/* Totals */
 .totals {
   border-top: 1px solid var(--border);
-  padding: 12px 18px;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   flex-shrink: 0;
 }
-.totalsCompare {
+.totalsHeader {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 4px;
 }
-.totalsColLabel:not(:first-child) {
+.totalsColHdr {
   text-align: right;
 }
 .totalRow {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   font-size: 0.8rem;
   color: var(--text-secondary);
-  gap: 8px;
 }
 .totalRowFinal {
   font-weight: 700;
@@ -299,23 +349,10 @@
   border-top: 1px solid var(--border);
   margin-top: 2px;
 }
-.origValue {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-align: right;
-  min-width: 80px;
-}
-.adjValue {
-  font-size: 0.82rem;
-  color: var(--primary);
-  font-weight: 700;
-  text-align: right;
-  min-width: 80px;
-}
 
 /* Share */
 .shareRow {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -327,7 +364,7 @@
   gap: 7px;
   background: var(--primary);
   color: white;
-  padding: 12px;
+  padding: 11px;
   border-radius: var(--radius-md);
   font-size: 0.88rem;
   font-weight: 700;

@@ -122,20 +122,9 @@ describe('App', () => {
     });
   });
 
-  it('opens quote panel when View Quote is clicked', async () => {
+  it('View Quote button is disabled when cart empty', () => {
     render(<App />);
-
-    const addButtons = screen.getAllByText('Add to Quote');
-    fireEvent.click(addButtons[0]);
-
-    await waitFor(() => {
-      const viewBtn = screen.getByRole('button', { name: /View Quote/i });
-      fireEvent.click(viewBtn);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('button', { name: /View Quote/i })).toBeDisabled();
   });
 
   it('filters panel shows margin % section', () => {

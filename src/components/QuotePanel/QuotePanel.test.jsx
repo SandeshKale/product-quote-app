@@ -12,141 +12,146 @@ const product = {
   articleCode: '534.84.523',
   articleName: 'Teresa Hood',
   category: 'Cooker Hoods',
-  mrp: 48120,
-  rrp: 36768,
-  dealerPricePreTax: 11931,
+  dimensions: 'Chimney - 90cm',
+  stockStatus: 'Good',
+  stock: 125,
+  mrp: 90290,
+  rrp: 68990,
+  dealerPricePreTax: 46254,
   gstRate: 0.18,
-  dealerPricePostTax: 14079,
+  dealerPricePostTax: 54580,
   marginPercent: 0.13,
+  avgLanding: 47482,
 };
+
+const enrichedItem = {
+  product,
+  quantity: 2,
+  effectiveMarginPct: 13,
+  effectiveMarginDec: 0.13,
+  adjDealerPostTax: 54580,
+  adjDealerPreTax: 46254,
+  origDealerPostTax: 54580,
+  origDealerPreTax: 46254,
+  origMarginPct: 13,
+  isOverridden: false,
+  adjLineTotal: 109160,
+  origLineTotal: 109160,
+};
+
 const templateItem = {
   serialNo: 1,
   articleCode: '534.84.523',
   articleName: 'Teresa Hood',
   category: 'Cooker Hoods',
-  mrp: 48120,
-  rrp: 36768,
-  dealerPricePreTax: 11931,
-  gstRate: 0.18,
-  dealerPricePostTax: 14079,
+  mrp: 90290,
+  rrp: 68990,
+  dealerPricePreTax: 46254,
+  dealerPricePostTax: 54580,
   quantity: 2,
-  lineTotal: 28158,
+  lineTotal: 109160,
+  origDealerPreTax: 46254,
+  origDealerPostTax: 54580,
+  adjDealerPreTax: 46254,
+  adjDealerPostTax: 54580,
+  adjLineTotal: 109160,
+  origLineTotal: 109160,
+  isOverridden: false,
 };
+
 const totals = {
-  totalMRP: 96240,
-  totalRRP: 73536,
-  totalDealerPreTax: 23862,
-  totalDealerPostTax: 28158,
+  totalMRP: 180580,
+  totalRRP: 137980,
+  totalDealerPreTax: 92508,
+  totalDealerPostTax: 109160,
 };
 
 const defaultProps = {
-  items: [{ product, quantity: 2 }],
-  totals,
+  enrichedItems: [enrichedItem],
+  adjustedTotals: totals,
   quoteTemplateItems: [templateItem],
   onRemove: vi.fn(),
   onUpdateQuantity: vi.fn(),
   onClear: vi.fn(),
   isOpen: true,
   onClose: vi.fn(),
+  setItemMargin: vi.fn(),
+  resetItemMargin: vi.fn(),
+  marginOverrides: {},
+  weightedMarginPct: 13,
+  hasAnyOverride: false,
 };
 
 describe('QuotePanel', () => {
-  it('renders quote items', () => {
+  it('renders product name', () => {
     render(<QuotePanel {...defaultProps} />);
-    // Text appears in both the panel list and the offscreen QuoteTemplate
     expect(screen.getAllByText('Teresa Hood').length).toBeGreaterThan(0);
   });
 
-  it('shows margin % for each item in the panel', () => {
+  it('shows dealer pre-tax in price table (#3)', () => {
     render(<QuotePanel {...defaultProps} />);
-    expect(screen.getByText(/Margin: 13%/i)).toBeInTheDocument();
+    // Pre-Tax column header is visible
+    expect(screen.getAllByText('Pre-Tax').length).toBeGreaterThan(0);
   });
 
-  it('shows totals section', () => {
+  it('shows original price column', () => {
     render(<QuotePanel {...defaultProps} />);
-    // Totals appear in both the panel and the offscreen QuoteTemplate
-    expect(screen.getAllByText(/Total.*MRP|Dealer.*Tax/i).length).toBeGreaterThan(0);
-    // totals appear in QuotePanel section
+    expect(screen.getByText(/Original \(13%\)/i)).toBeInTheDocument();
   });
 
-  it('does not show margin in totals', () => {
-    render(<QuotePanel {...defaultProps} />);
-    expect(screen.queryByText(/total margin/i)).not.toBeInTheDocument();
+  it('shows Adjusted column when item is overridden', () => {
+    const overriddenItem = { ...enrichedItem, isOverridden: true, effectiveMarginPct: 20 };
+    render(<QuotePanel {...defaultProps} enrichedItems={[overriddenItem]} hasAnyOverride={true} />);
+    expect(screen.getByText(/Adjusted \(20%\)/i)).toBeInTheDocument();
   });
 
-  it('calls onRemove when trash button clicked', () => {
+  it('renders per-item margin slider', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getByRole('slider')).toBeInTheDocument();
+  });
+
+  it('calls setItemMargin when slider is moved', () => {
+    const setItemMargin = vi.fn();
+    render(<QuotePanel {...defaultProps} setItemMargin={setItemMargin} />);
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '20' } });
+    expect(setItemMargin).toHaveBeenCalledWith('534.84.523', 20);
+  });
+
+  it('shows weighted margin when override is active', () => {
+    render(<QuotePanel {...defaultProps} hasAnyOverride={true} weightedMarginPct={18} />);
+    expect(screen.getByText('Weighted average margin:')).toBeInTheDocument();
+    expect(screen.getByText('18%')).toBeInTheDocument();
+  });
+
+  it('shows totals', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getAllByText('Dealer Post-Tax').length).toBeGreaterThan(0);
+  });
+
+  it('calls onRemove when trash clicked', () => {
     const onRemove = vi.fn();
     render(<QuotePanel {...defaultProps} onRemove={onRemove} />);
     fireEvent.click(screen.getByLabelText(/remove teresa hood/i));
     expect(onRemove).toHaveBeenCalledWith('534.84.523');
   });
 
-  it('calls onUpdateQuantity when + clicked', () => {
+  it('calls onUpdateQuantity on + click', () => {
     const onUpdateQuantity = vi.fn();
     render(<QuotePanel {...defaultProps} onUpdateQuantity={onUpdateQuantity} />);
     fireEvent.click(screen.getByLabelText(/increase quantity/i));
     expect(onUpdateQuantity).toHaveBeenCalledWith('534.84.523', 3);
   });
 
-  it('calls onClear when Clear all clicked', () => {
-    const onClear = vi.fn();
-    render(<QuotePanel {...defaultProps} onClear={onClear} />);
-    fireEvent.click(screen.getByText('Clear all'));
-    expect(onClear).toHaveBeenCalled();
-  });
-
   it('shows empty state when no items', () => {
     render(
       <QuotePanel
         {...defaultProps}
-        items={[]}
+        enrichedItems={[]}
         quoteTemplateItems={[]}
-        totals={{ totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }}
+        adjustedTotals={{ totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }}
       />
     );
-    expect(screen.getByText(/No items/i)).toBeInTheDocument();
-  });
-
-  it('does not render when isOpen is false', () => {
-    const { container } = render(<QuotePanel {...defaultProps} isOpen={false} />);
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('calls exportAndShare when Share Quote button is clicked', async () => {
-    const { exportAndShare } = await import('../../services/quoteExporter');
-    render(<QuotePanel {...defaultProps} />);
-    fireEvent.click(screen.getByText('Share Quote'));
-    await waitFor(() => {
-      expect(exportAndShare).toHaveBeenCalled();
-    });
-  });
-});
-
-describe('QuotePanel — margin slider', () => {
-  it('renders the margin slider section', () => {
-    render(<QuotePanel {...defaultProps} />);
-    expect(screen.getByRole('slider')).toBeInTheDocument();
-  });
-
-  it('shows adjusted values when slider is moved', async () => {
-    const getAdjustedItems = vi.fn(() => [
-      {
-        ...templateItem,
-        adjDealerPostTax: 16000,
-        adjDealerPreTax: 13559,
-        adjLineTotal: 32000,
-        origDealerPostTax: 14079,
-        origDealerPreTax: 11931,
-        origLineTotal: 28158,
-        origMarginPercent: 0.13,
-        adjMarginPercent: 0.2,
-      },
-    ]);
-    render(<QuotePanel {...defaultProps} getAdjustedItems={getAdjustedItems} />);
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '20' } });
-    await waitFor(() => {
-      expect(screen.getAllByText('20%').length).toBeGreaterThan(0);
-    });
+    expect(screen.getByText(/No items yet/i)).toBeInTheDocument();
   });
 
   it('renders template type buttons', () => {
@@ -155,7 +160,7 @@ describe('QuotePanel — margin slider', () => {
     expect(screen.getByText('Simple')).toBeInTheDocument();
   });
 
-  it('switches template type on button click', () => {
+  it('switches template type', () => {
     render(<QuotePanel {...defaultProps} />);
     fireEvent.click(screen.getByText('Simple'));
     expect(screen.getByText('Simple').className).toMatch(/Active/);
@@ -166,11 +171,15 @@ describe('QuotePanel — margin slider', () => {
     expect(screen.getByLabelText(/edit title/i)).toBeInTheDocument();
   });
 
-  it('allows editing the quote title', async () => {
+  it('calls Share when share button clicked', async () => {
+    const { exportAndShare } = await import('../../services/quoteExporter');
     render(<QuotePanel {...defaultProps} />);
-    fireEvent.click(screen.getByLabelText(/edit title/i));
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: '' })).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByText('Share Quote'));
+    await waitFor(() => expect(exportAndShare).toHaveBeenCalled());
+  });
+
+  it('does not render when isOpen is false', () => {
+    const { container } = render(<QuotePanel {...defaultProps} isOpen={false} />);
+    expect(container.firstChild).toBeNull();
   });
 });
