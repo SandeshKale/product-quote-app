@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Search, X } from 'lucide-react';
 import styles from './SearchBar.module.css';
 
@@ -34,5 +35,12 @@ export default function SearchBar({ query, onChange, resultCount, isLoading }) {
     </div>
   );
 }
+
+SearchBar.propTypes = {
+  query: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  resultCount: PropTypes.number.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+};
 
 SearchBar.displayName = 'SearchBar';

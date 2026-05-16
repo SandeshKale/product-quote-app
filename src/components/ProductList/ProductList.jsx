@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Plus, Check } from 'lucide-react';
 import { formatCurrency, formatMargin, formatGST } from '../../utils/formatters';
 import styles from './ProductList.module.css';
@@ -101,6 +102,33 @@ export default function ProductList({ products, quoteItems, onAdd, isLoading, st
     </div>
   );
 }
+
+const productShape = PropTypes.shape({
+  serialNo: PropTypes.number,
+  articleCode: PropTypes.string,
+  articleName: PropTypes.string,
+  category: PropTypes.string,
+  mrp: PropTypes.number,
+  rrp: PropTypes.number,
+  dealerPricePreTax: PropTypes.number,
+  gstRate: PropTypes.number,
+  dealerPricePostTax: PropTypes.number,
+  marginPercent: PropTypes.number,
+});
+
+ProductCard.propTypes = {
+  product: productShape.isRequired,
+  isInQuote: PropTypes.bool.isRequired,
+  onAdd: PropTypes.func.isRequired,
+};
+
+ProductList.propTypes = {
+  products: PropTypes.arrayOf(productShape).isRequired,
+  quoteItems: PropTypes.arrayOf(PropTypes.shape({ product: productShape })).isRequired,
+  onAdd: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  status: PropTypes.string.isRequired,
+};
 
 ProductList.displayName = 'ProductList';
 ProductCard.displayName = 'ProductCard';

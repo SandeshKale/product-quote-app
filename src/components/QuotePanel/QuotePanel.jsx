@@ -1,5 +1,6 @@
+import PropTypes from 'prop-types';
 import { useRef, useState } from 'react';
-import { Minus, Plus, Trash2, Share, Download, X, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, Share, X, ShoppingCart } from 'lucide-react';
 import { formatCurrency, formatMargin, generateQuoteNumber } from '../../utils/formatters';
 import { exportAndShare } from '../../services/quoteExporter';
 import QuoteTemplate from '../QuoteTemplate/QuoteTemplate';
@@ -159,5 +160,26 @@ export default function QuotePanel({
     </>
   );
 }
+
+QuotePanel.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      product: PropTypes.object.isRequired,
+      quantity: PropTypes.number.isRequired,
+    })
+  ).isRequired,
+  totals: PropTypes.shape({
+    totalMRP: PropTypes.number,
+    totalRRP: PropTypes.number,
+    totalDealerPreTax: PropTypes.number,
+    totalDealerPostTax: PropTypes.number,
+  }).isRequired,
+  quoteTemplateItems: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onRemove: PropTypes.func.isRequired,
+  onUpdateQuantity: PropTypes.func.isRequired,
+  onClear: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 QuotePanel.displayName = 'QuotePanel';

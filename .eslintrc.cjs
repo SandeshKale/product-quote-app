@@ -16,7 +16,7 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'react/prop-types': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    'no-unused-vars': 'error',
+    'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }],
     'no-undef': 'error',
   },
 };

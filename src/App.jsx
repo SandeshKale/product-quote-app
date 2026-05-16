@@ -13,7 +13,7 @@ import './index.css';
 import styles from './App.module.css';
 
 export default function App() {
-  const { products, metadata, status, lastSynced, refresh } = useDataSync();
+  const { products, metadata, status, refresh } = useDataSync();
   const { query, setQuery, filters, setFilters, clearFilters, results, availableCategories } =
     useSearch(products);
   const {
@@ -37,7 +37,6 @@ export default function App() {
       <Header
         metadata={metadata}
         status={status}
-        lastSynced={lastSynced}
         onRefresh={refresh}
       />
 

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { formatMargin, formatCurrency } from '../../utils/formatters';
 import styles from './FilterSidebar.module.css';
@@ -226,5 +227,23 @@ export default function FilterSidebar({
     </>
   );
 }
+
+const rangeShape = PropTypes.shape({ min: PropTypes.number, max: PropTypes.number });
+
+FilterSidebar.propTypes = {
+  filters: PropTypes.shape({
+    categories: PropTypes.arrayOf(PropTypes.string).isRequired,
+    mrpRange: rangeShape.isRequired,
+    rrpRange: rangeShape.isRequired,
+    marginRange: rangeShape.isRequired,
+    gstRate: PropTypes.number,
+  }).isRequired,
+  setFilters: PropTypes.func.isRequired,
+  clearFilters: PropTypes.func.isRequired,
+  availableCategories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  products: PropTypes.arrayOf(PropTypes.object).isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 FilterSidebar.displayName = 'FilterSidebar';

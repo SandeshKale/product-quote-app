@@ -1,9 +1,10 @@
+import PropTypes from 'prop-types';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { APP_NAME } from '../../constants/columnMap';
 import { formatDateTime } from '../../utils/formatters';
 import styles from './Header.module.css';
 
-export default function Header({ metadata, status, lastSynced, onRefresh }) {
+export default function Header({ metadata, status, onRefresh }) {
   const isStale = status === 'stale';
   const isLoading = status === 'loading';
 
@@ -45,5 +46,14 @@ export default function Header({ metadata, status, lastSynced, onRefresh }) {
     </header>
   );
 }
+
+Header.propTypes = {
+  metadata: PropTypes.shape({
+    fileName: PropTypes.string,
+    modifiedTime: PropTypes.string,
+  }),
+  status: PropTypes.string.isRequired,
+  onRefresh: PropTypes.func.isRequired,
+};
 
 Header.displayName = 'Header';

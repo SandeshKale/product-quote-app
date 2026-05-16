@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import PropTypes from 'prop-types';
 import { formatCurrency, formatDateShort } from '../../utils/formatters';
 import { APP_NAME } from '../../constants/columnMap';
 import styles from './QuoteTemplate.module.css';
@@ -99,6 +100,31 @@ const QuoteTemplate = forwardRef(function QuoteTemplate({ quoteNumber, items, to
     </div>
   );
 });
+
+QuoteTemplate.propTypes = {
+  quoteNumber: PropTypes.string.isRequired,
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      articleCode: PropTypes.string,
+      articleName: PropTypes.string,
+      category: PropTypes.string,
+      mrp: PropTypes.number,
+      rrp: PropTypes.number,
+      dealerPricePreTax: PropTypes.number,
+      gstRate: PropTypes.number,
+      dealerPricePostTax: PropTypes.number,
+      quantity: PropTypes.number,
+      lineTotal: PropTypes.number,
+      // marginPercent is intentionally absent — never passed to this component
+    })
+  ).isRequired,
+  totals: PropTypes.shape({
+    totalMRP: PropTypes.number,
+    totalRRP: PropTypes.number,
+    totalDealerPreTax: PropTypes.number,
+    totalDealerPostTax: PropTypes.number,
+  }).isRequired,
+};
 
 QuoteTemplate.displayName = 'QuoteTemplate';
 export default QuoteTemplate;
