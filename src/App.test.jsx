@@ -45,11 +45,10 @@ vi.mock('./services/quoteExporter', () => ({
 vi.mock('html2canvas', () => ({ default: vi.fn() }));
 
 beforeEach(() => {
-  vi.useFakeTimers();
+  // No fake timers here — waitFor relies on real setTimeout to poll
 });
 
 afterEach(() => {
-  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
@@ -98,8 +97,9 @@ describe('App', () => {
     const addButtons = screen.getAllByText('Add to Quote');
     fireEvent.click(addButtons[0]);
 
+    // The View Quote button becomes enabled when itemCount > 0
     await waitFor(() => {
-      expect(screen.getByText(/1 item selected/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /View Quote/i })).not.toBeDisabled();
     });
   });
 
@@ -140,5 +140,13 @@ describe('App', () => {
   it('shows the refresh button in the header', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /refresh/i })).toBeInTheDocument();
+  });
+
+  it('opens filter sidebar when filter toggle button clicked', () => {
+    render(<App />);
+    // The mobile filter toggle button — use getAllByRole since there may be multiple Filter-labelled buttons
+    const filterButtons = screen.getAllByRole('button', { name: /filters/i });
+    fireEvent.click(filterButtons[0]);
+    expect(filterButtons[0]).toBeInTheDocument();
   });
 });

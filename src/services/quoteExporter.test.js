@@ -69,20 +69,18 @@ describe('exportAndShare', () => {
   });
 
   it('falls back to download when navigator.canShare is not available', async () => {
-    // canShare not defined at all
-    const clickSpy = vi.fn();
-    vi.spyOn(document, 'createElement').mockImplementationOnce(() => ({
-      click: clickSpy,
-      set href(_) {},
-      set download(_) {},
-    }));
-
-    // Provide a minimal stub
     navigator.canShare = undefined;
 
+    // Create a real anchor element so appendChild works in jsdom
+    const anchor = document.createElement('a');
+    const clickSpy = vi.spyOn(anchor, 'click').mockImplementation(() => {});
+    vi.spyOn(document, 'createElement').mockReturnValueOnce(anchor);
+
     const result = await exportAndShare(mockRef, quoteNumber);
+
     expect(result.method).toBe('download');
     expect(result.success).toBe(true);
+    expect(clickSpy).toHaveBeenCalled();
   });
 
   it('falls back to download when canShare returns false', async () => {

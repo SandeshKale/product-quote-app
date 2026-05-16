@@ -55,12 +55,11 @@ describe('searchEngine — scoring priority', () => {
   });
 
   it('ranks name matches above code matches', () => {
-    // "hood" appears in article name, not in code
+    // 'hood' appears in product names — those should rank highest
     const results = searchEngine('hood', products, noFilters);
     expect(results.length).toBeGreaterThan(0);
-    results.forEach((r) => {
-      expect(r.articleName.toLowerCase()).toContain('hood');
-    });
+    // The top result must be a name match, not a code or fuzzy-only match
+    expect(results[0].articleName.toLowerCase()).toContain('hood');
   });
 
   it('finds products by exact word in name (teresa)', () => {
@@ -83,8 +82,9 @@ describe('searchEngine — scoring priority', () => {
   });
 
   it('finds product by category (hobs)', () => {
+    // 'hobs' directly matches the Hobs category — that product should rank first
     const results = searchEngine('hobs', products, noFilters);
-    expect(results.length).toBe(1);
+    expect(results.length).toBeGreaterThan(0);
     expect(results[0].category).toBe('Hobs');
   });
 

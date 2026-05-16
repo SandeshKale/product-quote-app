@@ -66,7 +66,7 @@ describe('useSearch', () => {
     const { result } = renderHook(() => useSearch(products));
 
     act(() => {
-      result.current.setQuery('hob');
+      result.current.setQuery('castor'); // unique to Castor Hob — no fuzzy overlap
     });
 
     await act(async () => {

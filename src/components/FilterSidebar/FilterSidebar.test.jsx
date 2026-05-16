@@ -112,4 +112,147 @@ describe('FilterSidebar', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /cooker hoods/i }));
     expect(setFilters).toHaveBeenCalled();
   });
+
+  it('calls setFilters when MRP min input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[0], { target: { value: '10000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when MRP max input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[1], { target: { value: '50000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when RRP min input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[2], { target: { value: '5000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when RRP max input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[3], { target: { value: '40000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when margin min input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[4], { target: { value: '10' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when margin max input changes', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[5], { target: { value: '20' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when GST All radio selected', () => {
+    const setFilters = vi.fn();
+    const filtersWithGst = { ...defaultFilters, gstRate: 0.18 };
+    render(
+      <FilterSidebar
+        filters={filtersWithGst}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    fireEvent.click(screen.getByRole('radio', { name: /all/i }));
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters when a GST rate radio is selected', () => {
+    const setFilters = vi.fn();
+    render(
+      <FilterSidebar
+        filters={defaultFilters}
+        setFilters={setFilters}
+        clearFilters={vi.fn()}
+        availableCategories={['Cooker Hoods']}
+        products={products}
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+    fireEvent.click(screen.getByRole('radio', { name: /18%/i }));
+    expect(setFilters).toHaveBeenCalled();
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import QuotePanel from './QuotePanel';
 
 vi.mock('../../services/quoteExporter', () => ({
@@ -53,7 +53,8 @@ const defaultProps = {
 describe('QuotePanel', () => {
   it('renders quote items', () => {
     render(<QuotePanel {...defaultProps} />);
-    expect(screen.getByText('Teresa Hood')).toBeInTheDocument();
+    // Text appears in both the panel list and the offscreen QuoteTemplate
+    expect(screen.getAllByText('Teresa Hood').length).toBeGreaterThan(0);
   });
 
   it('shows margin % for each item in the panel', () => {
@@ -63,8 +64,9 @@ describe('QuotePanel', () => {
 
   it('shows totals section', () => {
     render(<QuotePanel {...defaultProps} />);
-    expect(screen.getByText('Total MRP')).toBeInTheDocument();
-    expect(screen.getByText('Total Dealer (Post-Tax)')).toBeInTheDocument();
+    // Totals appear in both the panel and the offscreen QuoteTemplate
+    expect(screen.getAllByText('Total MRP').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Total Dealer (Post-Tax)').length).toBeGreaterThan(0);
   });
 
   it('does not show margin in totals', () => {
@@ -108,5 +110,14 @@ describe('QuotePanel', () => {
   it('does not render when isOpen is false', () => {
     const { container } = render(<QuotePanel {...defaultProps} isOpen={false} />);
     expect(container.firstChild).toBeNull();
+  });
+
+  it('calls exportAndShare when Share Quote button is clicked', async () => {
+    const { exportAndShare } = await import('../../services/quoteExporter');
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByText('Share Quote'));
+    await waitFor(() => {
+      expect(exportAndShare).toHaveBeenCalled();
+    });
   });
 });
