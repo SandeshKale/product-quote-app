@@ -32,7 +32,7 @@ describe('fetchExcelFile', () => {
     await expect(fetchExcelFile()).rejects.toThrow('Network error');
   });
 
-  it('calls fetch with the correct URL structure', async () => {
+  it('calls the server-side proxy endpoint /api/excel', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       arrayBuffer: () => Promise.resolve(mockArrayBuffer),
@@ -40,9 +40,7 @@ describe('fetchExcelFile', () => {
 
     await fetchExcelFile();
     const calledUrl = fetch.mock.calls[0][0];
-    expect(calledUrl).toContain('googleapis.com/drive/v3/files');
-    expect(calledUrl).toContain('alt=media');
-    expect(calledUrl).toContain('key=');
+    expect(calledUrl).toBe('/api/excel');
   });
 });
 
@@ -72,7 +70,7 @@ describe('fetchFileMetadata', () => {
     expect(result.modifiedTime).toBeNull();
   });
 
-  it('calls fetch with fields=name,modifiedTime', async () => {
+  it('calls the server-side proxy endpoint /api/metadata', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ name: 'TestData.xlsx', modifiedTime: '2026-05-15T09:00:00Z' }),
@@ -80,6 +78,6 @@ describe('fetchFileMetadata', () => {
 
     await fetchFileMetadata();
     const calledUrl = fetch.mock.calls[0][0];
-    expect(calledUrl).toContain('fields=name,modifiedTime');
+    expect(calledUrl).toBe('/api/metadata');
   });
 });
