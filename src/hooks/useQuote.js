@@ -13,9 +13,7 @@ export function useQuote() {
       const existing = prev.find((i) => i.product.articleCode === product.articleCode);
       if (existing) {
         return prev.map((i) =>
-          i.product.articleCode === product.articleCode
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
+          i.product.articleCode === product.articleCode ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
       return [...prev, { product, quantity: 1 }];
@@ -29,9 +27,7 @@ export function useQuote() {
   const updateQuantity = useCallback((articleCode, quantity) => {
     const qty = Math.max(1, Math.floor(quantity));
     setItems((prev) =>
-      prev.map((i) =>
-        i.product.articleCode === articleCode ? { ...i, quantity: qty } : i
-      )
+      prev.map((i) => (i.product.articleCode === articleCode ? { ...i, quantity: qty } : i))
     );
   }, []);
 
@@ -71,8 +67,8 @@ export function useQuote() {
   );
 
   return {
-    items,          // full items with marginPercent for quote panel display
-    totals,         // price totals only — no margin
+    items, // full items with marginPercent for quote panel display
+    totals, // price totals only — no margin
     quoteTemplateItems, // margin-free items for the quote image
     addItem,
     removeItem,

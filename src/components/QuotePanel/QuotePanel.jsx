@@ -50,7 +50,9 @@ export default function QuotePanel({
         <div className={styles.panelHeader}>
           <div className={styles.panelTitle}>
             <ShoppingCart size={18} />
-            <span>Quote ({items.length} item{items.length !== 1 ? 's' : ''})</span>
+            <span>
+              Quote ({items.length} item{items.length !== 1 ? 's' : ''})
+            </span>
           </div>
           <div className={styles.panelActions}>
             {items.length > 0 && (
@@ -68,7 +70,9 @@ export default function QuotePanel({
           {items.length === 0 ? (
             <div className={styles.emptyState}>
               <p>No items in your quote yet.</p>
-              <p>Search for products and click <strong>Add to Quote</strong>.</p>
+              <p>
+                Search for products and click <strong>Add to Quote</strong>.
+              </p>
             </div>
           ) : (
             items.map(({ product, quantity }) => (
@@ -139,11 +143,7 @@ export default function QuotePanel({
             </div>
 
             <div className={styles.shareRow}>
-              <button
-                className={styles.shareBtn}
-                onClick={handleShare}
-                disabled={isGenerating}
-              >
+              <button className={styles.shareBtn} onClick={handleShare} disabled={isGenerating}>
                 {isGenerating ? (
                   <span>Generating…</span>
                 ) : (

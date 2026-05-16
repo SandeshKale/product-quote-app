@@ -14,9 +14,7 @@ vi.mock('../utils/excelParser', () => ({
 import { fetchExcelFile, fetchFileMetadata } from '../services/driveService';
 import { parseExcel } from '../utils/excelParser';
 
-const mockProducts = [
-  { articleCode: 'A', articleName: 'Product A', category: 'Hoods' },
-];
+const mockProducts = [{ articleCode: 'A', articleName: 'Product A', category: 'Hoods' }];
 const mockMeta = { fileName: 'TestData.xlsx', modifiedTime: '2026-05-15T09:00:00Z' };
 
 beforeEach(() => {

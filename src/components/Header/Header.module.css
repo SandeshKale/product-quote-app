@@ -100,14 +100,28 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 600px) {
-  .header { padding: 0 16px; }
-  .appName { font-size: 1.1rem; }
-  .modifiedTime { display: none; }
-  .refreshBtn span { display: none; }
-  .refreshBtn { padding: 8px; }
+  .header {
+    padding: 0 16px;
+  }
+  .appName {
+    font-size: 1.1rem;
+  }
+  .modifiedTime {
+    display: none;
+  }
+  .refreshBtn span {
+    display: none;
+  }
+  .refreshBtn {
+    padding: 8px;
+  }
 }

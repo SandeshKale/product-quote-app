@@ -63,7 +63,9 @@ const QuoteTemplate = forwardRef(function QuoteTemplate({ quoteNumber, items, to
               <td className={styles.tdAmount}>{formatCurrency(item.mrp)}</td>
               <td className={styles.tdAmount}>{formatCurrency(item.rrp)}</td>
               <td className={styles.tdAmount}>{formatCurrency(item.dealerPricePostTax)}</td>
-              <td className={`${styles.tdAmount} ${styles.lineTotal}`}>{formatCurrency(item.lineTotal)}</td>
+              <td className={`${styles.tdAmount} ${styles.lineTotal}`}>
+                {formatCurrency(item.lineTotal)}
+              </td>
             </tr>
           ))}
         </tbody>

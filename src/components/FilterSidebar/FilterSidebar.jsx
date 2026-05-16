@@ -90,7 +90,10 @@ export default function FilterSidebar({
               onChange={(e) =>
                 setFilters((prev) => ({
                   ...prev,
-                  mrpRange: { ...prev.mrpRange, min: e.target.value ? Number(e.target.value) : null },
+                  mrpRange: {
+                    ...prev.mrpRange,
+                    min: e.target.value ? Number(e.target.value) : null,
+                  },
                 }))
               }
               className={styles.rangeInput}
@@ -105,7 +108,10 @@ export default function FilterSidebar({
               onChange={(e) =>
                 setFilters((prev) => ({
                   ...prev,
-                  mrpRange: { ...prev.mrpRange, max: e.target.value ? Number(e.target.value) : null },
+                  mrpRange: {
+                    ...prev.mrpRange,
+                    max: e.target.value ? Number(e.target.value) : null,
+                  },
                 }))
               }
               className={styles.rangeInput}
@@ -126,7 +132,10 @@ export default function FilterSidebar({
               onChange={(e) =>
                 setFilters((prev) => ({
                   ...prev,
-                  rrpRange: { ...prev.rrpRange, min: e.target.value ? Number(e.target.value) : null },
+                  rrpRange: {
+                    ...prev.rrpRange,
+                    min: e.target.value ? Number(e.target.value) : null,
+                  },
                 }))
               }
               className={styles.rangeInput}
@@ -139,7 +148,10 @@ export default function FilterSidebar({
               onChange={(e) =>
                 setFilters((prev) => ({
                   ...prev,
-                  rrpRange: { ...prev.rrpRange, max: e.target.value ? Number(e.target.value) : null },
+                  rrpRange: {
+                    ...prev.rrpRange,
+                    max: e.target.value ? Number(e.target.value) : null,
+                  },
                 }))
               }
               className={styles.rangeInput}

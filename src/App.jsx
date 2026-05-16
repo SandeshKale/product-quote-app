@@ -34,11 +34,7 @@ export default function App() {
 
   return (
     <div className={styles.app}>
-      <Header
-        metadata={metadata}
-        status={status}
-        onRefresh={refresh}
-      />
+      <Header metadata={metadata} status={status} onRefresh={refresh} />
 
       <div className={styles.body}>
         <FilterSidebar
@@ -54,10 +50,7 @@ export default function App() {
         <main className={styles.main}>
           {/* Mobile filter toggle */}
           <div className={styles.mobileBar}>
-            <button
-              className={styles.filterToggle}
-              onClick={() => setIsFilterOpen(true)}
-            >
+            <button className={styles.filterToggle} onClick={() => setIsFilterOpen(true)}>
               <SlidersHorizontal size={16} />
               <span>Filters</span>
             </button>

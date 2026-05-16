@@ -29,7 +29,9 @@ export default function SearchBar({ query, onChange, resultCount, isLoading }) {
       </div>
       {!isLoading && (
         <p className={styles.resultCount}>
-          {resultCount === 0 ? 'No products found' : `${resultCount} product${resultCount === 1 ? '' : 's'} found`}
+          {resultCount === 0
+            ? 'No products found'
+            : `${resultCount} product${resultCount === 1 ? '' : 's'} found`}
         </p>
       )}
     </div>

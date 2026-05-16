@@ -63,7 +63,9 @@ export default function ProductList({ products, quoteItems, onAdd, isLoading, st
     return (
       <div className={styles.emptyState}>
         <p className={styles.emptyTitle}>Unable to load products</p>
-        <p className={styles.emptySubtitle}>Check your Google Drive connection and try refreshing.</p>
+        <p className={styles.emptySubtitle}>
+          Check your Google Drive connection and try refreshing.
+        </p>
       </div>
     );
   }

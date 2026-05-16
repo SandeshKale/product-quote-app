@@ -4,14 +4,27 @@ import QuoteTemplate from './QuoteTemplate';
 
 const items = [
   {
-    serialNo: 1, articleCode: '534.84.523', articleName: 'Teresa Neo I-90 Bldc Hood',
-    category: 'Cooker Hoods', mrp: 48120, rrp: 36768, dealerPricePreTax: 11931,
-    gstRate: 0.18, dealerPricePostTax: 14079, quantity: 2, lineTotal: 28158,
+    serialNo: 1,
+    articleCode: '534.84.523',
+    articleName: 'Teresa Neo I-90 Bldc Hood',
+    category: 'Cooker Hoods',
+    mrp: 48120,
+    rrp: 36768,
+    dealerPricePreTax: 11931,
+    gstRate: 0.18,
+    dealerPricePostTax: 14079,
+    quantity: 2,
+    lineTotal: 28158,
     // marginPercent intentionally absent — never passed to this component
   },
 ];
 
-const totals = { totalMRP: 96240, totalRRP: 73536, totalDealerPreTax: 23862, totalDealerPostTax: 28158 };
+const totals = {
+  totalMRP: 96240,
+  totalRRP: 73536,
+  totalDealerPreTax: 23862,
+  totalDealerPostTax: 28158,
+};
 
 describe('QuoteTemplate — margin enforcement', () => {
   it('NEVER renders margin % in the output', () => {
@@ -74,7 +87,9 @@ describe('QuoteTemplate — content', () => {
 
   it('accepts a ref for html2canvas capture', () => {
     const ref = { current: null };
-    render(<QuoteTemplate ref={ref} quoteNumber="QT-1747295834123" items={items} totals={totals} />);
+    render(
+      <QuoteTemplate ref={ref} quoteNumber="QT-1747295834123" items={items} totals={totals} />
+    );
     expect(ref.current).not.toBeNull();
   });
 });

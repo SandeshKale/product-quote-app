@@ -101,9 +101,7 @@ describe('parseExcel', () => {
   });
 
   it('coerces null numeric fields to 0', () => {
-    XLSX.utils.sheet_to_json.mockReturnValue([
-      { ...mockRow, 'Q2 MRP': null, 'Q2 RRP': null },
-    ]);
+    XLSX.utils.sheet_to_json.mockReturnValue([{ ...mockRow, 'Q2 MRP': null, 'Q2 RRP': null }]);
     const [p] = parseExcel(new ArrayBuffer(8));
     expect(p.mrp).toBe(0);
     expect(p.rrp).toBe(0);

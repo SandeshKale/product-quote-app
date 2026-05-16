@@ -19,9 +19,7 @@ export async function exportAndShare(templateRef, quoteNumber) {
     logging: false,
   });
 
-  const blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, 'image/png', 1.0)
-  );
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 1.0));
 
   const fileName = `${quoteNumber}.png`;
   const file = new File([blob], fileName, { type: 'image/png' });

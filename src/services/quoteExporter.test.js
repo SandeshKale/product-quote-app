@@ -58,7 +58,9 @@ describe('exportAndShare', () => {
 
   it('returns aborted:true when user dismisses share sheet', async () => {
     navigator.canShare = vi.fn(() => true);
-    navigator.share = vi.fn(() => Promise.reject(Object.assign(new Error('AbortError'), { name: 'AbortError' })));
+    navigator.share = vi.fn(() =>
+      Promise.reject(Object.assign(new Error('AbortError'), { name: 'AbortError' }))
+    );
 
     const result = await exportAndShare(mockRef, quoteNumber);
 

@@ -14,9 +14,7 @@ export default function Header({ metadata, status, onRefresh }) {
         <h1 className={styles.appName}>{APP_NAME}</h1>
         <div className={styles.versionBadge}>
           {isStale && <AlertTriangle size={14} className={styles.staleIcon} />}
-          <span className={styles.fileName}>
-            {metadata?.fileName ?? 'Loading…'}
-          </span>
+          <span className={styles.fileName}>{metadata?.fileName ?? 'Loading…'}</span>
           {metadata?.modifiedTime && (
             <>
               <span className={styles.separator}>·</span>
@@ -25,9 +23,7 @@ export default function Header({ metadata, status, onRefresh }) {
               </span>
             </>
           )}
-          {isStale && (
-            <span className={styles.staleLabel}>(offline — showing cached data)</span>
-          )}
+          {isStale && <span className={styles.staleLabel}>(offline — showing cached data)</span>}
         </div>
       </div>
 

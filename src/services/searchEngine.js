@@ -12,11 +12,7 @@
  */
 
 export function searchEngine(query, products, filters) {
-  const terms = query
-    .toLowerCase()
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
 
   const scored = products
     .map((product) => ({

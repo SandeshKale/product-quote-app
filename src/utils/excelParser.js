@@ -13,9 +13,7 @@ export function parseExcel(arrayBuffer) {
   const sheet = workbook.Sheets[sheetName];
   const raw = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
-  return raw
-    .map((row, index) => normaliseRow(row, index))
-    .filter((p) => p !== null);
+  return raw.map((row, index) => normaliseRow(row, index)).filter((p) => p !== null);
 }
 
 function normaliseRow(row, index) {

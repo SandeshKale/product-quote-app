@@ -8,22 +8,46 @@ vi.mock('../../services/quoteExporter', () => ({
 vi.mock('html2canvas', () => ({ default: vi.fn() }));
 
 const product = {
-  serialNo: 1, articleCode: '534.84.523', articleName: 'Teresa Hood',
-  category: 'Cooker Hoods', mrp: 48120, rrp: 36768, dealerPricePreTax: 11931,
-  gstRate: 0.18, dealerPricePostTax: 14079, marginPercent: 0.13,
+  serialNo: 1,
+  articleCode: '534.84.523',
+  articleName: 'Teresa Hood',
+  category: 'Cooker Hoods',
+  mrp: 48120,
+  rrp: 36768,
+  dealerPricePreTax: 11931,
+  gstRate: 0.18,
+  dealerPricePostTax: 14079,
+  marginPercent: 0.13,
 };
 const templateItem = {
-  serialNo: 1, articleCode: '534.84.523', articleName: 'Teresa Hood',
-  category: 'Cooker Hoods', mrp: 48120, rrp: 36768, dealerPricePreTax: 11931,
-  gstRate: 0.18, dealerPricePostTax: 14079, quantity: 2, lineTotal: 28158,
+  serialNo: 1,
+  articleCode: '534.84.523',
+  articleName: 'Teresa Hood',
+  category: 'Cooker Hoods',
+  mrp: 48120,
+  rrp: 36768,
+  dealerPricePreTax: 11931,
+  gstRate: 0.18,
+  dealerPricePostTax: 14079,
+  quantity: 2,
+  lineTotal: 28158,
 };
-const totals = { totalMRP: 96240, totalRRP: 73536, totalDealerPreTax: 23862, totalDealerPostTax: 28158 };
+const totals = {
+  totalMRP: 96240,
+  totalRRP: 73536,
+  totalDealerPreTax: 23862,
+  totalDealerPostTax: 28158,
+};
 
 const defaultProps = {
   items: [{ product, quantity: 2 }],
   totals,
   quoteTemplateItems: [templateItem],
-  onRemove: vi.fn(), onUpdateQuantity: vi.fn(), onClear: vi.fn(), isOpen: true, onClose: vi.fn(),
+  onRemove: vi.fn(),
+  onUpdateQuantity: vi.fn(),
+  onClear: vi.fn(),
+  isOpen: true,
+  onClose: vi.fn(),
 };
 
 describe('QuotePanel', () => {
@@ -70,8 +94,14 @@ describe('QuotePanel', () => {
   });
 
   it('shows empty state when no items', () => {
-    render(<QuotePanel {...defaultProps} items={[]} quoteTemplateItems={[]}
-      totals={{ totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }} />);
+    render(
+      <QuotePanel
+        {...defaultProps}
+        items={[]}
+        quoteTemplateItems={[]}
+        totals={{ totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }}
+      />
+    );
     expect(screen.getByText(/No items/i)).toBeInTheDocument();
   });
 
