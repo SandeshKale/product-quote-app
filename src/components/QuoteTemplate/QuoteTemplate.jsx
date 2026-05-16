@@ -1,131 +1,140 @@
 import { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { formatCurrency, formatDateShort } from '../../utils/formatters';
-import { APP_NAME } from '../../constants/columnMap';
 import styles from './QuoteTemplate.module.css';
 
 /**
- * QuoteTemplate — rendered off-screen and captured by html2canvas.
+ * QuoteTemplate — captured by html2canvas for sharing.
  *
- * IMPORTANT:
- * - marginPercent is NEVER accepted as a prop and NEVER rendered.
- * - No expiry date is shown anywhere.
- * - Quote number format: QT-<long integer timestamp>
- *
- * Props items shape: { serialNo, articleCode, articleName, category,
- *   mrp, rrp, dealerPricePreTax, gstRate, dealerPricePostTax, quantity, lineTotal }
- * No marginPercent field should exist on any item.
+ * Rules:
+ * - NO quote number (#18)
+ * - NO marginPercent or cost ever rendered
+ * - Totals appear below their respective column (#3)
+ * - Dealer Pre-Tax shown per line item (#20)
+ * - Shows original + adjusted values when slider is active (#19)
+ * - Two template types: 'detailed' and 'simple' (#13)
  */
-const QuoteTemplate = forwardRef(function QuoteTemplate({ quoteNumber, items, totals }, ref) {
+const QuoteTemplate = forwardRef(function QuoteTemplate(
+  { quoteTitle, items, totals, templateType, sliderMarginPct },
+  ref
+) {
   const today = formatDateShort(new Date());
+  const sliderActive = sliderMarginPct != null;
+  const isSimple = templateType === 'simple';
 
   return (
     <div ref={ref} className={styles.template}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.appName}>{APP_NAME}</h1>
+        <h1 className={styles.title}>{quoteTitle}</h1>
         <div className={styles.headerMeta}>
-          <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>Quote No</span>
-            <span className={styles.metaValue}>{quoteNumber}</span>
-          </div>
           <div className={styles.metaItem}>
             <span className={styles.metaLabel}>Date</span>
             <span className={styles.metaValue}>{today}</span>
           </div>
+          {sliderActive && (
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>Margin Applied</span>
+              <span className={styles.metaValue}>{sliderMarginPct}%</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Items Table */}
       <table className={styles.table}>
         <thead>
-          <tr className={styles.tableHead}>
+          <tr className={styles.thead}>
             <th className={styles.thSr}>#</th>
-            <th className={styles.thCode}>Article Code</th>
+            <th className={styles.thCode}>Code</th>
             <th className={styles.thName}>Product</th>
             <th className={styles.thQty}>Qty</th>
-            <th className={styles.thAmount}>MRP</th>
-            <th className={styles.thAmount}>RRP</th>
-            <th className={styles.thAmount}>Dealer Post-Tax</th>
-            <th className={styles.thAmount}>Line Total</th>
+            <th className={styles.thAmt}>MRP</th>
+            <th className={styles.thAmt}>RRP</th>
+            {!isSimple && <th className={styles.thAmt}>Dealer Pre-Tax</th>}
+            <th className={styles.thAmt}>Dealer Post-Tax{sliderActive ? ' (Orig)' : ''}</th>
+            {sliderActive && <th className={styles.thAmt}>Dealer Post-Tax (Adj)</th>}
+            <th className={styles.thAmt}>Line Total</th>
           </tr>
         </thead>
         <tbody>
-          {items.map((item, index) => (
-            <tr key={item.articleCode || index} className={styles.tableRow}>
-              <td className={styles.tdSr}>{index + 1}</td>
+          {items.map((item, idx) => (
+            <tr
+              key={item.articleCode || idx}
+              className={`${styles.trow} ${idx % 2 === 1 ? styles.trowAlt : ''}`}
+            >
+              <td className={styles.tdSr}>{idx + 1}</td>
               <td className={styles.tdCode}>{item.articleCode}</td>
               <td className={styles.tdName}>
                 <span className={styles.itemName}>{item.articleName}</span>
-                <span className={styles.itemCategory}>{item.category}</span>
+                <span className={styles.itemCat}>{item.category}</span>
+                {item.dimensions && <span className={styles.itemDim}>{item.dimensions}</span>}
               </td>
               <td className={styles.tdQty}>{item.quantity}</td>
-              <td className={styles.tdAmount}>{formatCurrency(item.mrp)}</td>
-              <td className={styles.tdAmount}>{formatCurrency(item.rrp)}</td>
-              <td className={styles.tdAmount}>{formatCurrency(item.dealerPricePostTax)}</td>
-              <td className={`${styles.tdAmount} ${styles.lineTotal}`}>
-                {formatCurrency(item.lineTotal)}
+              <td className={styles.tdAmt}>{formatCurrency(item.mrp)}</td>
+              <td className={styles.tdAmt}>{formatCurrency(item.rrp)}</td>
+              {!isSimple && (
+                <td className={styles.tdAmt}>
+                  {formatCurrency(item.origDealerPreTax ?? item.dealerPricePreTax)}
+                </td>
+              )}
+              <td className={styles.tdAmt}>
+                {formatCurrency(item.origDealerPostTax ?? item.dealerPricePostTax)}
+              </td>
+              {sliderActive && (
+                <td className={`${styles.tdAmt} ${styles.adjCell}`}>
+                  {formatCurrency(item.adjDealerPostTax)}
+                </td>
+              )}
+              <td className={`${styles.tdAmt} ${styles.lineTotal}`}>
+                {formatCurrency(item.adjLineTotal ?? item.lineTotal)}
               </td>
             </tr>
           ))}
         </tbody>
+        {/* Totals below their column (#3) */}
+        <tfoot>
+          <tr className={styles.tfootRow}>
+            <td colSpan={isSimple ? 3 : 3} className={styles.tfootLabel}>
+              TOTALS
+            </td>
+            <td className={styles.tfootQty}>{items.reduce((s, i) => s + i.quantity, 0)}</td>
+            <td className={styles.tfootAmt}>{formatCurrency(totals.totalMRP)}</td>
+            <td className={styles.tfootAmt}>{formatCurrency(totals.totalRRP)}</td>
+            {!isSimple && (
+              <td className={styles.tfootAmt}>{formatCurrency(totals.totalDealerPreTax)}</td>
+            )}
+            <td className={styles.tfootAmt}>{formatCurrency(totals.totalDealerPostTax)}</td>
+            {sliderActive && (
+              <td className={`${styles.tfootAmt} ${styles.adjCell}`}>
+                {formatCurrency(totals.totalDealerPostTax)}
+              </td>
+            )}
+            <td className={`${styles.tfootAmt} ${styles.grandTotal}`}>
+              {formatCurrency(items.reduce((s, i) => s + (i.adjLineTotal ?? i.lineTotal), 0))}
+            </td>
+          </tr>
+        </tfoot>
       </table>
 
-      {/* Totals */}
-      <div className={styles.totalsSection}>
-        <div className={styles.totalsGrid}>
-          <div className={styles.totalRow}>
-            <span className={styles.totalLabel}>Total MRP</span>
-            <span className={styles.totalValue}>{formatCurrency(totals.totalMRP)}</span>
-          </div>
-          <div className={styles.totalRow}>
-            <span className={styles.totalLabel}>Total RRP</span>
-            <span className={styles.totalValue}>{formatCurrency(totals.totalRRP)}</span>
-          </div>
-          <div className={styles.totalRow}>
-            <span className={styles.totalLabel}>Total Dealer Price (Pre-Tax)</span>
-            <span className={styles.totalValue}>{formatCurrency(totals.totalDealerPreTax)}</span>
-          </div>
-          <div className={`${styles.totalRow} ${styles.totalRowFinal}`}>
-            <span className={styles.totalLabel}>Total Dealer Price (Post-Tax)</span>
-            <span className={`${styles.totalValue} ${styles.finalValue}`}>
-              {formatCurrency(totals.totalDealerPostTax)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
       <div className={styles.footer}>
-        <p className={styles.footerText}>Generated by {APP_NAME}</p>
+        <p className={styles.footerText}>Generated by {quoteTitle}</p>
       </div>
     </div>
   );
 });
 
 QuoteTemplate.propTypes = {
-  quoteNumber: PropTypes.string.isRequired,
-  items: PropTypes.arrayOf(
-    PropTypes.shape({
-      articleCode: PropTypes.string,
-      articleName: PropTypes.string,
-      category: PropTypes.string,
-      mrp: PropTypes.number,
-      rrp: PropTypes.number,
-      dealerPricePreTax: PropTypes.number,
-      gstRate: PropTypes.number,
-      dealerPricePostTax: PropTypes.number,
-      quantity: PropTypes.number,
-      lineTotal: PropTypes.number,
-      // marginPercent is intentionally absent — never passed to this component
-    })
-  ).isRequired,
+  quoteTitle: PropTypes.string.isRequired,
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
   totals: PropTypes.shape({
     totalMRP: PropTypes.number,
     totalRRP: PropTypes.number,
     totalDealerPreTax: PropTypes.number,
     totalDealerPostTax: PropTypes.number,
   }).isRequired,
+  templateType: PropTypes.string,
+  sliderMarginPct: PropTypes.number,
 };
 
 QuoteTemplate.displayName = 'QuoteTemplate';

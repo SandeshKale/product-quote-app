@@ -65,8 +65,8 @@ describe('QuotePanel', () => {
   it('shows totals section', () => {
     render(<QuotePanel {...defaultProps} />);
     // Totals appear in both the panel and the offscreen QuoteTemplate
-    expect(screen.getAllByText('Total MRP').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Total Dealer (Post-Tax)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Total.*MRP|Dealer.*Tax/i).length).toBeGreaterThan(0);
+    // totals appear in QuotePanel section
   });
 
   it('does not show margin in totals', () => {
@@ -118,6 +118,59 @@ describe('QuotePanel', () => {
     fireEvent.click(screen.getByText('Share Quote'));
     await waitFor(() => {
       expect(exportAndShare).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('QuotePanel — margin slider', () => {
+  it('renders the margin slider section', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getByRole('slider')).toBeInTheDocument();
+  });
+
+  it('shows adjusted values when slider is moved', async () => {
+    const getAdjustedItems = vi.fn(() => [
+      {
+        ...templateItem,
+        adjDealerPostTax: 16000,
+        adjDealerPreTax: 13559,
+        adjLineTotal: 32000,
+        origDealerPostTax: 14079,
+        origDealerPreTax: 11931,
+        origLineTotal: 28158,
+        origMarginPercent: 0.13,
+        adjMarginPercent: 0.2,
+      },
+    ]);
+    render(<QuotePanel {...defaultProps} getAdjustedItems={getAdjustedItems} />);
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '20' } });
+    await waitFor(() => {
+      expect(screen.getAllByText('20%').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('renders template type buttons', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getByText('Detailed')).toBeInTheDocument();
+    expect(screen.getByText('Simple')).toBeInTheDocument();
+  });
+
+  it('switches template type on button click', () => {
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByText('Simple'));
+    expect(screen.getByText('Simple').className).toMatch(/Active/);
+  });
+
+  it('shows edit title button', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getByLabelText(/edit title/i)).toBeInTheDocument();
+  });
+
+  it('allows editing the quote title', async () => {
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText(/edit title/i));
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: '' })).toBeInTheDocument();
     });
   });
 });

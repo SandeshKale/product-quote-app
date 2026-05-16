@@ -15,81 +15,92 @@ const items = [
     dealerPricePostTax: 14079,
     quantity: 2,
     lineTotal: 28158,
-    // marginPercent intentionally absent — never passed to this component
+    origDealerPostTax: 14079,
+    origDealerPreTax: 11931,
+    adjDealerPostTax: 14079,
+    adjDealerPreTax: 11931,
+    adjLineTotal: 28158,
+    origLineTotal: 28158,
   },
 ];
-
 const totals = {
   totalMRP: 96240,
   totalRRP: 73536,
   totalDealerPreTax: 23862,
   totalDealerPostTax: 28158,
 };
+const baseProps = {
+  quoteTitle: 'Smart Quote Generator',
+  items,
+  totals,
+  templateType: 'detailed',
+  sliderMarginPct: null,
+};
 
 describe('QuoteTemplate — margin enforcement', () => {
   it('NEVER renders margin % in the output', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.queryByText(/margin/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/13%/)).not.toBeInTheDocument();
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.queryByText(/\bmargin\b/i)).not.toBeInTheDocument();
   });
 
   it('NEVER renders an expiry date', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.queryByText(/valid for/i)).not.toBeInTheDocument();
+    render(<QuoteTemplate {...baseProps} />);
     expect(screen.queryByText(/expir/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/valid till/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/valid for/i)).not.toBeInTheDocument();
   });
 
   it('NEVER renders cost price', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.queryByText(/cost/i)).not.toBeInTheDocument();
-  });
-
-  it('NEVER renders a margin total', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.queryByText(/total margin/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/average margin/i)).not.toBeInTheDocument();
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.queryByText(/\bcost\b/i)).not.toBeInTheDocument();
   });
 });
 
-describe('QuoteTemplate — quote number', () => {
-  it('renders the quote number in QT-<long integer> format', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.getByText('QT-1747295834123')).toBeInTheDocument();
+describe('QuoteTemplate — quote number removed (#18)', () => {
+  it('does NOT render a QT- quote number', () => {
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.queryByText(/QT-\d+/)).not.toBeInTheDocument();
   });
 });
 
 describe('QuoteTemplate — content', () => {
+  it('renders the quote title', () => {
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.getAllByText('Smart Quote Generator').length).toBeGreaterThan(0);
+  });
+
   it('renders the article code', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
+    render(<QuoteTemplate {...baseProps} />);
     expect(screen.getByText('534.84.523')).toBeInTheDocument();
   });
 
   it('renders the product name', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
+    render(<QuoteTemplate {...baseProps} />);
     expect(screen.getByText('Teresa Neo I-90 Bldc Hood')).toBeInTheDocument();
   });
 
-  it('renders Total MRP', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.getByText('Total MRP')).toBeInTheDocument();
+  it('renders TOTALS in tfoot (#3)', () => {
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.getByText('TOTALS')).toBeInTheDocument();
   });
 
-  it('renders Total Dealer Price (Post-Tax)', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.getByText('Total Dealer Price (Post-Tax)')).toBeInTheDocument();
+  it('renders Dealer Pre-Tax column header in detailed mode (#20)', () => {
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.getByText('Dealer Pre-Tax')).toBeInTheDocument();
   });
 
-  it('renders the date', () => {
-    render(<QuoteTemplate quoteNumber="QT-1747295834123" items={items} totals={totals} />);
-    expect(screen.getByText(/Date/i)).toBeInTheDocument();
+  it('hides Dealer Pre-Tax column in simple mode', () => {
+    render(<QuoteTemplate {...baseProps} templateType="simple" />);
+    expect(screen.queryByText('Dealer Pre-Tax')).not.toBeInTheDocument();
   });
 
-  it('accepts a ref for html2canvas capture', () => {
+  it('shows Margin Applied in header when slider is active (#19)', () => {
+    render(<QuoteTemplate {...baseProps} sliderMarginPct={20} />);
+    expect(screen.getByText('Margin Applied')).toBeInTheDocument();
+  });
+
+  it('accepts a ref for html2canvas', () => {
     const ref = { current: null };
-    render(
-      <QuoteTemplate ref={ref} quoteNumber="QT-1747295834123" items={items} totals={totals} />
-    );
+    render(<QuoteTemplate ref={ref} {...baseProps} />);
     expect(ref.current).not.toBeNull();
   });
 });

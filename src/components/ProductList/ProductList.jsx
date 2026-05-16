@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
-import { Plus, Check } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { formatCurrency, formatMargin, formatGST } from '../../utils/formatters';
 import styles from './ProductList.module.css';
 
-export function ProductCard({ product, isInQuote, onAdd }) {
+export function ProductCard({ product, cartCount, onAdd }) {
+  const inCart = cartCount > 0;
+
   return (
-    <div className={`${styles.card} ${isInQuote ? styles.inQuote : ''}`}>
+    <div className={`${styles.card} ${inCart ? styles.inCart : ''}`}>
       <div className={styles.cardHeader}>
         <span className={styles.code}>{product.articleCode}</span>
         <span className={styles.category}>{product.category}</span>
@@ -13,45 +15,30 @@ export function ProductCard({ product, isInQuote, onAdd }) {
 
       <h3 className={styles.name}>{product.articleName}</h3>
 
+      {/* Dimensions — only shown when present (#17) */}
+      {product.dimensions && <p className={styles.dimensions}>{product.dimensions}</p>}
+
       <div className={styles.priceGrid}>
-        <div className={styles.priceItem}>
-          <span className={styles.priceLabel}>MRP</span>
-          <span className={styles.priceValue}>{formatCurrency(product.mrp)}</span>
-        </div>
-        <div className={styles.priceItem}>
-          <span className={styles.priceLabel}>RRP</span>
-          <span className={styles.priceValue}>{formatCurrency(product.rrp)}</span>
-        </div>
-        <div className={styles.priceItem}>
-          <span className={styles.priceLabel}>Dealer (Post-Tax)</span>
-          <span className={styles.priceValue}>{formatCurrency(product.dealerPricePostTax)}</span>
-        </div>
-        <div className={styles.priceItem}>
-          <span className={styles.priceLabel}>Margin</span>
-          <span className={`${styles.priceValue} ${styles.margin}`}>
-            {formatMargin(product.marginPercent)}
-          </span>
-        </div>
+        <PriceItem label="MRP" value={formatCurrency(product.mrp)} />
+        <PriceItem label="RRP" value={formatCurrency(product.rrp)} />
+        <PriceItem label="Dealer Post-Tax" value={formatCurrency(product.dealerPricePostTax)} />
+        <PriceItem
+          label="Margin"
+          value={formatMargin(product.marginPercent)}
+          className={styles.margin}
+        />
       </div>
 
       <div className={styles.cardFooter}>
         <span className={styles.gst}>GST {formatGST(product.gstRate)}</span>
         <button
-          className={`${styles.addBtn} ${isInQuote ? styles.addBtnActive : ''}`}
+          className={`${styles.addBtn} ${inCart ? styles.addBtnActive : ''}`}
           onClick={() => onAdd(product)}
-          aria-label={`${isInQuote ? 'Add another' : 'Add'} ${product.articleName} to quote`}
+          aria-label={`Add ${product.articleName} to quote`}
         >
-          {isInQuote ? (
-            <>
-              <Check size={15} />
-              <span>Add Again</span>
-            </>
-          ) : (
-            <>
-              <Plus size={15} />
-              <span>Add to Quote</span>
-            </>
-          )}
+          <Plus size={14} />
+          {/* Show cart count instead of "Add Again" (#10) */}
+          <span>{inCart ? `In cart: ${cartCount}` : 'Add to Quote'}</span>
         </button>
       </div>
     </div>
@@ -89,7 +76,10 @@ export default function ProductList({ products, quoteItems, onAdd, isLoading, st
     );
   }
 
-  const inQuoteCodes = new Set(quoteItems.map((i) => i.product.articleCode));
+  const cartMap = {};
+  quoteItems.forEach(({ product, quantity }) => {
+    cartMap[product.articleCode] = quantity;
+  });
 
   return (
     <div className={styles.list}>
@@ -97,7 +87,7 @@ export default function ProductList({ products, quoteItems, onAdd, isLoading, st
         <ProductCard
           key={product.articleCode || product.serialNo}
           product={product}
-          isInQuote={inQuoteCodes.has(product.articleCode)}
+          cartCount={cartMap[product.articleCode] || 0}
           onAdd={onAdd}
         />
       ))}
@@ -105,11 +95,27 @@ export default function ProductList({ products, quoteItems, onAdd, isLoading, st
   );
 }
 
+function PriceItem({ label, value, className }) {
+  return (
+    <div className={styles.priceItem}>
+      <span className={styles.priceLabel}>{label}</span>
+      <span className={`${styles.priceValue} ${className || ''}`}>{value}</span>
+    </div>
+  );
+}
+
+PriceItem.propTypes = {
+  label: PropTypes.string,
+  value: PropTypes.string,
+  className: PropTypes.string,
+};
+
 const productShape = PropTypes.shape({
   serialNo: PropTypes.number,
   articleCode: PropTypes.string,
   articleName: PropTypes.string,
   category: PropTypes.string,
+  dimensions: PropTypes.string,
   mrp: PropTypes.number,
   rrp: PropTypes.number,
   dealerPricePreTax: PropTypes.number,
@@ -120,7 +126,7 @@ const productShape = PropTypes.shape({
 
 ProductCard.propTypes = {
   product: productShape.isRequired,
-  isInQuote: PropTypes.bool.isRequired,
+  cartCount: PropTypes.number.isRequired,
   onAdd: PropTypes.func.isRequired,
 };
 

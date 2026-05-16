@@ -1,9 +1,16 @@
 import { useState, useCallback, useMemo } from 'react';
 
 /**
- * Manages the quote cart state.
- * marginPercent is available on each item for display in the quote panel.
- * It must never appear in the totals object or be passed to QuoteTemplate.
+ * Manages the quote cart.
+ *
+ * Rules:
+ * - marginPercent and cost available on items for quote panel display + slider.
+ * - Neither appears in totals or quoteTemplateItems.
+ * - If qty is 1 and user presses minus → item is removed automatically.
+ *
+ * Margin slider recalculation formula (from Excel):
+ *   newPostTax = cost / (1 - newMarginDecimal)
+ *   newPreTax  = newPostTax / (1 + gstRate)
  */
 export function useQuote() {
   const [items, setItems] = useState([]);
@@ -25,7 +32,12 @@ export function useQuote() {
   }, []);
 
   const updateQuantity = useCallback((articleCode, quantity) => {
-    const qty = Math.max(1, Math.floor(quantity));
+    const qty = Math.floor(quantity);
+    // If qty drops to 0 or below → remove item (change #4)
+    if (qty <= 0) {
+      setItems((prev) => prev.filter((i) => i.product.articleCode !== articleCode));
+      return;
+    }
     setItems((prev) =>
       prev.map((i) => (i.product.articleCode === articleCode ? { ...i, quantity: qty } : i))
     );
@@ -33,20 +45,49 @@ export function useQuote() {
 
   const clearQuote = useCallback(() => setItems([]), []);
 
-  // Computed totals — margin % intentionally excluded
-  const totals = useMemo(() => {
-    return items.reduce(
-      (acc, { product, quantity }) => ({
-        totalMRP: acc.totalMRP + product.mrp * quantity,
-        totalRRP: acc.totalRRP + product.rrp * quantity,
-        totalDealerPreTax: acc.totalDealerPreTax + product.dealerPricePreTax * quantity,
-        totalDealerPostTax: acc.totalDealerPostTax + product.dealerPricePostTax * quantity,
-      }),
-      { totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }
-    );
-  }, [items]);
+  // Standard totals — no margin
+  const totals = useMemo(
+    () =>
+      items.reduce(
+        (acc, { product, quantity }) => ({
+          totalMRP: acc.totalMRP + product.mrp * quantity,
+          totalRRP: acc.totalRRP + product.rrp * quantity,
+          totalDealerPreTax: acc.totalDealerPreTax + product.dealerPricePreTax * quantity,
+          totalDealerPostTax: acc.totalDealerPostTax + product.dealerPricePostTax * quantity,
+        }),
+        { totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }
+      ),
+    [items]
+  );
 
-  // Items shaped for QuoteTemplate — margin fields stripped
+  /**
+   * Calculate adjusted totals and per-item prices for a given margin %.
+   * Uses the Excel formula: PostTax = Cost/(1-m), PreTax = PostTax/(1+GST)
+   */
+  const getAdjustedItems = useCallback(
+    (marginPercent) => {
+      return items.map(({ product, quantity }) => {
+        const m = Math.min(Math.max(marginPercent / 100, 0), 0.99);
+        const adjPostTax = product.cost > 0 ? product.cost / (1 - m) : product.dealerPricePostTax;
+        const adjPreTax = adjPostTax / (1 + product.gstRate);
+        return {
+          ...product,
+          quantity,
+          origDealerPostTax: product.dealerPricePostTax,
+          origDealerPreTax: product.dealerPricePreTax,
+          origMarginPercent: product.marginPercent,
+          adjDealerPostTax: adjPostTax,
+          adjDealerPreTax: adjPreTax,
+          adjMarginPercent: m,
+          adjLineTotal: adjPostTax * quantity,
+          origLineTotal: product.dealerPricePostTax * quantity,
+        };
+      });
+    },
+    [items]
+  );
+
+  // Items for QuoteTemplate — all margin/cost fields stripped
   const quoteTemplateItems = useMemo(
     () =>
       items.map(({ product, quantity }) => ({
@@ -54,6 +95,7 @@ export function useQuote() {
         articleCode: product.articleCode,
         articleName: product.articleName,
         category: product.category,
+        dimensions: product.dimensions,
         mrp: product.mrp,
         rrp: product.rrp,
         dealerPricePreTax: product.dealerPricePreTax,
@@ -61,19 +103,20 @@ export function useQuote() {
         dealerPricePostTax: product.dealerPricePostTax,
         quantity,
         lineTotal: product.dealerPricePostTax * quantity,
-        // marginPercent: intentionally absent — never passed to QuoteTemplate
+        // marginPercent and cost intentionally absent
       })),
     [items]
   );
 
   return {
-    items, // full items with marginPercent for quote panel display
-    totals, // price totals only — no margin
-    quoteTemplateItems, // margin-free items for the quote image
+    items,
+    totals,
+    quoteTemplateItems,
     addItem,
     removeItem,
     updateQuantity,
     clearQuote,
+    getAdjustedItems,
     itemCount: items.length,
   };
 }

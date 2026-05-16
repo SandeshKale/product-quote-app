@@ -4,9 +4,10 @@ import styles from './SearchBar.module.css';
 
 export default function SearchBar({ query, onChange, resultCount, isLoading }) {
   return (
+    /* Sticky so search pins to top of main column (#9) */
     <div className={styles.wrapper}>
       <div className={styles.inputRow}>
-        <Search size={18} className={styles.icon} />
+        <Search size={17} className={styles.icon} />
         <input
           className={styles.input}
           type="text"
@@ -23,7 +24,7 @@ export default function SearchBar({ query, onChange, resultCount, isLoading }) {
             onClick={() => onChange('')}
             aria-label="Clear search"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         )}
       </div>
@@ -44,5 +45,4 @@ SearchBar.propTypes = {
   resultCount: PropTypes.number.isRequired,
   isLoading: PropTypes.bool.isRequired,
 };
-
 SearchBar.displayName = 'SearchBar';

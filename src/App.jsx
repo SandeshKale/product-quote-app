@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SlidersHorizontal, ShoppingCart } from 'lucide-react';
 import Header from './components/Header/Header';
 import SearchBar from './components/SearchBar/SearchBar';
@@ -14,8 +14,16 @@ import styles from './App.module.css';
 
 export default function App() {
   const { products, metadata, status, refresh } = useDataSync();
-  const { query, setQuery, filters, setFilters, clearFilters, results, availableCategories } =
-    useSearch(products);
+  const {
+    query,
+    setQuery,
+    filters,
+    setFilters,
+    clearFilters,
+    results,
+    availableCategories,
+    availableDimensions,
+  } = useSearch(products);
   const {
     items,
     totals,
@@ -24,17 +32,41 @@ export default function App() {
     removeItem,
     updateQuantity,
     clearQuote,
+    getAdjustedItems,
     itemCount,
   } = useQuote();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
 
+  // Dark mode (#12) — persisted to localStorage
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem('pq_dark') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    try {
+      localStorage.setItem('pq_dark', darkMode ? 'true' : 'false');
+    } catch {
+      /* */
+    }
+  }, [darkMode]);
+
   const isLoading = status === 'loading' || status === 'idle';
 
   return (
     <div className={styles.app}>
-      <Header metadata={metadata} status={status} onRefresh={refresh} />
+      <Header
+        metadata={metadata}
+        status={status}
+        onRefresh={refresh}
+        darkMode={darkMode}
+        onToggleDark={() => setDarkMode((d) => !d)}
+      />
 
       <div className={styles.body}>
         <FilterSidebar
@@ -42,6 +74,7 @@ export default function App() {
           setFilters={setFilters}
           clearFilters={clearFilters}
           availableCategories={availableCategories}
+          availableDimensions={availableDimensions}
           products={products}
           isOpen={isFilterOpen}
           onClose={() => setIsFilterOpen(false)}
@@ -51,11 +84,12 @@ export default function App() {
           {/* Mobile filter toggle */}
           <div className={styles.mobileBar}>
             <button className={styles.filterToggle} onClick={() => setIsFilterOpen(true)}>
-              <SlidersHorizontal size={16} />
+              <SlidersHorizontal size={15} />
               <span>Filters</span>
             </button>
           </div>
 
+          {/* Search — sticky inside main column (#9) */}
           <div className={styles.searchArea}>
             <SearchBar
               query={query}
@@ -77,7 +111,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* Sticky quote bar at bottom */}
+      {/* Quote bar — pinned to bottom (#1) */}
       <div className={styles.quoteBar}>
         <div className={styles.quoteBarContent}>
           <span className={styles.quoteBarSummary}>
@@ -85,20 +119,17 @@ export default function App() {
               'Add products to build a quote'
             ) : (
               <>
-                <strong>{itemCount}</strong> item{itemCount !== 1 ? 's' : ''} selected
-                {' · '}
-                <span className={styles.quoteTotal}>
-                  Dealer Total: {formatCurrency(totals.totalDealerPostTax)}
-                </span>
+                {itemCount} item{itemCount !== 1 ? 's' : ''} ·{' '}
+                <strong>{formatCurrency(totals.totalDealerPostTax)}</strong> dealer post-tax
               </>
             )}
           </span>
           <button
-            className={`${styles.viewQuoteBtn} ${itemCount === 0 ? styles.viewQuoteBtnDisabled : ''}`}
+            className={styles.viewQuoteBtn}
             onClick={() => itemCount > 0 && setIsQuoteOpen(true)}
             disabled={itemCount === 0}
           >
-            <ShoppingCart size={16} />
+            <ShoppingCart size={15} />
             <span>View Quote</span>
             {itemCount > 0 && <span className={styles.badge}>{itemCount}</span>}
           </button>
@@ -114,6 +145,7 @@ export default function App() {
         onClear={clearQuote}
         isOpen={isQuoteOpen}
         onClose={() => setIsQuoteOpen(false)}
+        getAdjustedItems={getAdjustedItems}
       />
     </div>
   );

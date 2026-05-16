@@ -8,6 +8,7 @@ export default function FilterSidebar({
   setFilters,
   clearFilters,
   availableCategories,
+  availableDimensions,
   products,
   isOpen,
   onClose,
@@ -17,10 +18,6 @@ export default function FilterSidebar({
   const maxMRP = mrpValues.length ? Math.ceil(Math.max(...mrpValues)) : 100000;
   const maxRRP = rrpValues.length ? Math.ceil(Math.max(...rrpValues)) : 100000;
 
-  const gstRates = [...new Set(products.map((p) => p.gstRate).filter((v) => v != null))].sort(
-    (a, b) => a - b
-  );
-
   const hasActive =
     filters.categories.length > 0 ||
     filters.mrpRange.min != null ||
@@ -29,24 +26,43 @@ export default function FilterSidebar({
     filters.rrpRange.max != null ||
     filters.marginRange.min != null ||
     filters.marginRange.max != null ||
-    filters.gstRate != null;
+    filters.dimensions.length > 0;
 
-  function toggleCategory(cat) {
-    setFilters((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(cat)
-        ? prev.categories.filter((c) => c !== cat)
-        : [...prev.categories, cat],
+  const toggleCategory = (cat) =>
+    setFilters((p) => ({
+      ...p,
+      categories: p.categories.includes(cat)
+        ? p.categories.filter((c) => c !== cat)
+        : [...p.categories, cat],
     }));
-  }
+
+  const toggleDimension = (dim) =>
+    setFilters((p) => ({
+      ...p,
+      dimensions: p.dimensions.includes(dim)
+        ? p.dimensions.filter((d) => d !== dim)
+        : [...p.dimensions, dim],
+    }));
+
+  const setRange = (key, side, value) =>
+    setFilters((p) => ({
+      ...p,
+      [key]: { ...p[key], [side]: value ? Number(value) : null },
+    }));
+
+  const setMarginRange = (side, raw) => {
+    const value = raw ? Number(raw) / 100 : null;
+    setFilters((p) => ({ ...p, marginRange: { ...p.marginRange, [side]: value } }));
+  };
 
   return (
     <>
       {isOpen && <div className={styles.overlay} onClick={onClose} />}
+      {/* position:sticky so it stays put while the product list scrolls (#21) */}
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarTitle}>
-            <SlidersHorizontal size={16} />
+            <SlidersHorizontal size={15} />
             <span>Filters</span>
           </div>
           <div className={styles.sidebarActions}>
@@ -56,187 +72,127 @@ export default function FilterSidebar({
               </button>
             )}
             <button className={styles.closeBtn} onClick={onClose} aria-label="Close filters">
-              <X size={18} />
+              <X size={17} />
             </button>
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Category</h3>
+        {/* Category */}
+        <Section title="Category">
           <div className={styles.checkboxList}>
             {availableCategories.map((cat) => (
               <label key={cat} className={styles.checkboxLabel}>
                 <input
                   type="checkbox"
+                  className={styles.checkbox}
                   checked={filters.categories.includes(cat)}
                   onChange={() => toggleCategory(cat)}
-                  className={styles.checkbox}
                 />
                 <span>{cat}</span>
               </label>
             ))}
           </div>
-        </div>
+        </Section>
+
+        {/* Dimensions — only shown when data has this column */}
+        {availableDimensions.length > 0 && (
+          <Section title="Dimensions">
+            <select
+              className={styles.dimSelect}
+              multiple
+              value={filters.dimensions}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+                setFilters((p) => ({ ...p, dimensions: selected }));
+              }}
+            >
+              {availableDimensions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            {filters.dimensions.length > 0 && (
+              <button
+                className={styles.clearBtn}
+                onClick={() => setFilters((p) => ({ ...p, dimensions: [] }))}
+              >
+                Clear
+              </button>
+            )}
+          </Section>
+        )}
 
         {/* MRP Range */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>MRP Range</h3>
-          <div className={styles.rangeInputs}>
-            <input
-              type="number"
-              placeholder={`Min (${formatCurrency(0)})`}
-              value={filters.mrpRange.min ?? ''}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  mrpRange: {
-                    ...prev.mrpRange,
-                    min: e.target.value ? Number(e.target.value) : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-              min={0}
-              max={maxMRP}
-            />
-            <span className={styles.rangeSep}>–</span>
-            <input
-              type="number"
-              placeholder={`Max (${formatCurrency(maxMRP)})`}
-              value={filters.mrpRange.max ?? ''}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  mrpRange: {
-                    ...prev.mrpRange,
-                    max: e.target.value ? Number(e.target.value) : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-              min={0}
-              max={maxMRP}
-            />
-          </div>
-        </div>
+        <Section title="MRP Range">
+          <RangeInputs
+            min={filters.mrpRange.min}
+            max={filters.mrpRange.max}
+            placeholderMin={`Min (${formatCurrency(0)})`}
+            placeholderMax={`Max (${formatCurrency(maxMRP)})`}
+            onMin={(v) => setRange('mrpRange', 'min', v)}
+            onMax={(v) => setRange('mrpRange', 'max', v)}
+          />
+        </Section>
 
         {/* RRP Range */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>RRP Range</h3>
-          <div className={styles.rangeInputs}>
-            <input
-              type="number"
-              placeholder={`Min (${formatCurrency(0)})`}
-              value={filters.rrpRange.min ?? ''}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  rrpRange: {
-                    ...prev.rrpRange,
-                    min: e.target.value ? Number(e.target.value) : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-            />
-            <span className={styles.rangeSep}>–</span>
-            <input
-              type="number"
-              placeholder={`Max (${formatCurrency(maxRRP)})`}
-              value={filters.rrpRange.max ?? ''}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  rrpRange: {
-                    ...prev.rrpRange,
-                    max: e.target.value ? Number(e.target.value) : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-            />
-          </div>
-        </div>
+        <Section title="RRP Range">
+          <RangeInputs
+            min={filters.rrpRange.min}
+            max={filters.rrpRange.max}
+            placeholderMin={`Min (${formatCurrency(0)})`}
+            placeholderMax={`Max (${formatCurrency(maxRRP)})`}
+            onMin={(v) => setRange('rrpRange', 'min', v)}
+            onMax={(v) => setRange('rrpRange', 'max', v)}
+          />
+        </Section>
 
-        {/* Margin % Range — visible to user for filtering */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Margin %</h3>
-          <div className={styles.rangeInputs}>
-            <input
-              type="number"
-              placeholder="Min %"
-              value={
-                filters.marginRange.min != null ? Math.round(filters.marginRange.min * 100) : ''
-              }
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  marginRange: {
-                    ...prev.marginRange,
-                    min: e.target.value ? Number(e.target.value) / 100 : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-              min={0}
-              max={100}
-            />
-            <span className={styles.rangeSep}>–</span>
-            <input
-              type="number"
-              placeholder="Max %"
-              value={
-                filters.marginRange.max != null ? Math.round(filters.marginRange.max * 100) : ''
-              }
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  marginRange: {
-                    ...prev.marginRange,
-                    max: e.target.value ? Number(e.target.value) / 100 : null,
-                  },
-                }))
-              }
-              className={styles.rangeInput}
-              min={0}
-              max={100}
-            />
-          </div>
-        </div>
+        {/* Margin % */}
+        <Section title="Margin %">
+          <RangeInputs
+            min={filters.marginRange.min != null ? Math.round(filters.marginRange.min * 100) : null}
+            max={filters.marginRange.max != null ? Math.round(filters.marginRange.max * 100) : null}
+            placeholderMin="Min %"
+            placeholderMax="Max %"
+            onMin={(v) => setMarginRange('min', v)}
+            onMax={(v) => setMarginRange('max', v)}
+          />
+        </Section>
 
-        {/* GST Rate */}
-        {gstRates.length > 0 && (
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>GST Rate</h3>
-            <div className={styles.radioList}>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="gstRate"
-                  checked={filters.gstRate === null}
-                  onChange={() => setFilters((prev) => ({ ...prev, gstRate: null }))}
-                  className={styles.radio}
-                />
-                <span>All</span>
-              </label>
-              {gstRates.map((rate) => (
-                <label key={rate} className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="gstRate"
-                    checked={filters.gstRate === rate}
-                    onChange={() => setFilters((prev) => ({ ...prev, gstRate: rate }))}
-                    className={styles.radio}
-                  />
-                  <span>{formatMargin(rate)}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* GST filter removed per change #16 */}
       </aside>
     </>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}>{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function RangeInputs({ min, max, placeholderMin, placeholderMax, onMin, onMax }) {
+  return (
+    <div className={styles.rangeInputs}>
+      <input
+        type="number"
+        className={styles.rangeInput}
+        placeholder={placeholderMin}
+        value={min ?? ''}
+        onChange={(e) => onMin(e.target.value)}
+      />
+      <span className={styles.rangeSep}>–</span>
+      <input
+        type="number"
+        className={styles.rangeInput}
+        placeholder={placeholderMax}
+        value={max ?? ''}
+        onChange={(e) => onMax(e.target.value)}
+      />
+    </div>
   );
 }
 
@@ -248,14 +204,25 @@ FilterSidebar.propTypes = {
     mrpRange: rangeShape.isRequired,
     rrpRange: rangeShape.isRequired,
     marginRange: rangeShape.isRequired,
-    gstRate: PropTypes.number,
+    dimensions: PropTypes.arrayOf(PropTypes.string).isRequired,
   }).isRequired,
   setFilters: PropTypes.func.isRequired,
   clearFilters: PropTypes.func.isRequired,
   availableCategories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  availableDimensions: PropTypes.arrayOf(PropTypes.string).isRequired,
   products: PropTypes.arrayOf(PropTypes.object).isRequired,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+};
+
+Section.propTypes = { title: PropTypes.string.isRequired, children: PropTypes.node.isRequired };
+RangeInputs.propTypes = {
+  min: PropTypes.number,
+  max: PropTypes.number,
+  placeholderMin: PropTypes.string,
+  placeholderMax: PropTypes.string,
+  onMin: PropTypes.func.isRequired,
+  onMax: PropTypes.func.isRequired,
 };
 
 FilterSidebar.displayName = 'FilterSidebar';

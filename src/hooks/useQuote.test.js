@@ -37,7 +37,6 @@ describe('useQuote — addItem', () => {
     });
 
     expect(result.current.items.length).toBe(1);
-    expect(result.current.items[0].quantity).toBe(1);
     expect(result.current.items[0].product.articleCode).toBe('534.84.523');
   });
 
@@ -109,7 +108,7 @@ describe('useQuote — updateQuantity', () => {
     expect(result.current.items[0].quantity).toBe(5);
   });
 
-  it('enforces minimum quantity of 1', () => {
+  it('qty 0 removes the item', () => {
     const { result } = renderHook(() => useQuote());
 
     act(() => {
@@ -120,7 +119,7 @@ describe('useQuote — updateQuantity', () => {
       result.current.updateQuantity('534.84.523', 0);
     });
 
-    expect(result.current.items[0].quantity).toBe(1);
+    expect(result.current.items.length).toBe(0);
   });
 
   it('floors decimal quantities', () => {

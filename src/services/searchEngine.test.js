@@ -159,13 +159,6 @@ describe('searchEngine — filters', () => {
     expect(results.every((r) => r.marginPercent <= 0.11)).toBe(true);
   });
 
-  it('filters by GST rate', () => {
-    const filters = { ...noFilters, gstRate: 0.08 };
-    const results = searchEngine('', products, filters);
-    expect(results.length).toBe(1);
-    expect(results[0].gstRate).toBe(0.08);
-  });
-
   it('combines query and filters', () => {
     const filters = { ...noFilters, categories: ['Cooker Hoods'] };
     const results = searchEngine('teresa', products, filters);

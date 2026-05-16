@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
+/* ── Light mode tokens ── */
 :root {
   --primary: #1a365d;
   --primary-light: #2c5282;
@@ -29,8 +30,29 @@
   --font-display: 'Crimson Pro', Georgia, serif;
   --font-body: 'Manrope', system-ui, sans-serif;
   --sidebar-width: 260px;
-  --header-height: 64px;
-  --quote-bar-height: 68px;
+  --header-height: 60px;
+  --quote-bar-height: 64px;
+}
+
+/* ── Dark mode tokens (#12) ── */
+[data-theme='dark'] {
+  --primary: #4a7fc1;
+  --primary-light: #63a0e0;
+  --primary-hover: #5b8fd4;
+  --accent: #e07a5f;
+  --background: #0f1117;
+  --surface: #1a1d27;
+  --surface-raised: #22263a;
+  --text-primary: #e8ecf0;
+  --text-secondary: #9aacbe;
+  --text-muted: #627a90;
+  --border: #2e3348;
+  --border-focus: #4a7fc1;
+  --success: #4caf80;
+  --error: #f87171;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 *,
@@ -40,12 +62,10 @@
   margin: 0;
   padding: 0;
 }
-
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
 }
-
 body {
   font-family: var(--font-body);
   background: var(--background);
@@ -53,30 +73,25 @@ body {
   line-height: 1.5;
   min-height: 100vh;
 }
-
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
-
 button {
   font-family: var(--font-body);
   cursor: pointer;
   border: none;
   outline: none;
 }
-
 button:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-
-input {
+input,
+select {
   font-family: var(--font-body);
 }
-
-/* Utility classes */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -88,11 +103,9 @@ input {
   white-space: nowrap;
   border: 0;
 }
-
-/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;

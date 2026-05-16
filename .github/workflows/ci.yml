@@ -36,6 +36,7 @@ jobs:
           VITE_DRIVE_FILE_ID: ${{ secrets.VITE_DRIVE_FILE_ID }}
           VITE_DRIVE_API_KEY: ${{ secrets.VITE_DRIVE_API_KEY }}
           VITE_APP_NAME: 'Smart Quote Generator'
+          VITE_APP_VERSION: ${{ github.sha }}
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -50,6 +51,7 @@ jobs:
           VITE_DRIVE_FILE_ID: ${{ secrets.VITE_DRIVE_FILE_ID }}
           VITE_DRIVE_API_KEY: ${{ secrets.VITE_DRIVE_API_KEY }}
           VITE_APP_NAME: 'Smart Quote Generator'
+          VITE_APP_VERSION: ${{ github.sha }}   # git SHA injected as version (#14)
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

@@ -8,97 +8,114 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   box-shadow: var(--shadow-md);
-  gap: 16px;
+  gap: 12px;
+  flex-shrink: 0;
 }
-
 .left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
-
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
 .appName {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: white;
-  letter-spacing: 0.01em;
   white-space: nowrap;
 }
-
+.version {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
 .versionBadge {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
-
 .fileName {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.12);
-  padding: 1px 8px;
+  padding: 1px 7px;
   border-radius: 100px;
   white-space: nowrap;
 }
-
-.separator {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.72rem;
+.sep {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.7rem;
 }
-
 .modifiedTime {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.72);
   white-space: nowrap;
 }
-
 .staleIcon {
-  color: var(--warning);
+  color: #fbd38d;
   flex-shrink: 0;
 }
-
 .staleLabel {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #fbd38d;
 }
-
 .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
-
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  width: 34px;
+  height: 34px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
 .refreshBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(255, 255, 255, 0.12);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: var(--radius-md);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   transition: background 0.15s;
   white-space: nowrap;
 }
-
 .refreshBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
 }
-
 .refreshBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
-
 .spinning {
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -110,18 +127,24 @@
 
 @media (max-width: 600px) {
   .header {
-    padding: 0 16px;
+    padding: 0 12px;
+    height: auto;
+    min-height: var(--header-height);
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   .appName {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
+  /* Show timestamp on mobile — was hidden before (fix #7) */
   .modifiedTime {
-    display: none;
+    display: block;
+    font-size: 0.65rem;
   }
-  .refreshBtn span {
+  .refreshLabel {
     display: none;
   }
   .refreshBtn {
-    padding: 8px;
+    padding: 7px 9px;
   }
 }

@@ -1,18 +1,22 @@
+/* Sidebar is position:sticky so it pins to its column on scroll (#21) */
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
   background: var(--surface);
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  height: 100%;
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height) - var(--quote-bar-height));
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 .sidebarHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -22,9 +26,9 @@
 .sidebarTitle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-primary);
 }
 .sidebarActions {
@@ -33,11 +37,12 @@
   gap: 8px;
 }
 .clearBtn {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--accent);
   font-weight: 600;
   background: none;
   text-decoration: underline;
+  cursor: pointer;
 }
 .closeBtn {
   display: none;
@@ -45,55 +50,67 @@
   color: var(--text-muted);
 }
 .section {
-  padding: 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
 }
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 10px;
+  letter-spacing: 0.06em;
+  margin-bottom: 9px;
 }
-.checkboxList,
-.radioList {
+.checkboxList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
-.checkboxLabel,
-.radioLabel {
+.checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
+  gap: 7px;
+  font-size: 0.82rem;
   color: var(--text-primary);
   cursor: pointer;
 }
-.checkboxLabel:hover,
-.radioLabel:hover {
+.checkboxLabel:hover {
   color: var(--primary);
 }
-.checkbox,
-.radio {
+.checkbox {
   accent-color: var(--primary);
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   cursor: pointer;
+}
+.dimSelect {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  font-family: var(--font-body);
+  min-height: 80px;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+.dimSelect option {
+  padding: 4px;
 }
 .rangeInputs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .rangeInput {
   flex: 1;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 8px;
-  font-size: 0.8rem;
+  padding: 6px 7px;
+  font-size: 0.78rem;
   color: var(--text-primary);
   background: var(--surface-raised);
   font-family: var(--font-body);
@@ -105,12 +122,13 @@
 }
 .rangeSep {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   flex-shrink: 0;
 }
 .overlay {
   display: none;
 }
+
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -120,7 +138,7 @@
     z-index: 200;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
-    width: 280px;
+    width: 285px;
     box-shadow: var(--shadow-lg);
   }
   .sidebar.open {
@@ -130,7 +148,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.45);
     z-index: 199;
   }
   .closeBtn {

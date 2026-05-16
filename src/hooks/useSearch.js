@@ -1,39 +1,33 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { searchEngine } from '../services/searchEngine';
 
-const DEFAULT_FILTERS = {
+export const DEFAULT_FILTERS = {
   categories: [],
   mrpRange: { min: null, max: null },
   rrpRange: { min: null, max: null },
   marginRange: { min: null, max: null },
-  gstRate: null,
+  dimensions: [], // Dimensions multi-select dropdown
+  // gstRate removed per UX change #16
 };
 
-function hasActiveFilters(filters) {
+function hasActiveFilters(f) {
   return (
-    filters.categories.length > 0 ||
-    filters.mrpRange.min != null ||
-    filters.mrpRange.max != null ||
-    filters.rrpRange.min != null ||
-    filters.rrpRange.max != null ||
-    filters.marginRange.min != null ||
-    filters.marginRange.max != null ||
-    filters.gstRate != null
+    f.categories.length > 0 ||
+    f.mrpRange.min != null ||
+    f.mrpRange.max != null ||
+    f.rrpRange.min != null ||
+    f.rrpRange.max != null ||
+    f.marginRange.min != null ||
+    f.marginRange.max != null ||
+    f.dimensions.length > 0
   );
 }
 
-/**
- * Provides debounced elastic search over the products array.
- * Auto-searches on every keystroke with a 200ms debounce.
- * Empty query + no filters returns all products.
- * marginRange filter is available to the user.
- */
 export function useSearch(products) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  // Debounce: fire search 200ms after the user stops typing
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), 200);
     return () => clearTimeout(timer);
@@ -45,13 +39,15 @@ export function useSearch(products) {
     return searchEngine(debouncedQuery, products, filters);
   }, [debouncedQuery, products, filters]);
 
-  const clearFilters = useCallback(() => {
-    setFilters(DEFAULT_FILTERS);
-  }, []);
+  const clearFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
-  // Derive unique categories from product data (not hardcoded)
   const availableCategories = useMemo(
     () => [...new Set(products.map((p) => p.category).filter(Boolean))].sort(),
+    [products]
+  );
+
+  const availableDimensions = useMemo(
+    () => [...new Set(products.map((p) => p.dimensions).filter(Boolean))].sort(),
     [products]
   );
 
@@ -63,5 +59,6 @@ export function useSearch(products) {
     clearFilters,
     results,
     availableCategories,
+    availableDimensions,
   };
 }

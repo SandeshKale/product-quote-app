@@ -17,30 +17,30 @@ const product = {
 
 describe('ProductCard', () => {
   it('renders article code', () => {
-    render(<ProductCard product={product} isInQuote={false} onAdd={vi.fn()} />);
+    render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
     expect(screen.getByText('534.84.523')).toBeInTheDocument();
   });
 
   it('renders product name', () => {
-    render(<ProductCard product={product} isInQuote={false} onAdd={vi.fn()} />);
+    render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
     expect(screen.getByText('Teresa Neo I-90 Bldc Hood')).toBeInTheDocument();
   });
 
   it('shows margin % to the user', () => {
-    render(<ProductCard product={product} isInQuote={false} onAdd={vi.fn()} />);
+    render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
     expect(screen.getByText('13%')).toBeInTheDocument();
   });
 
   it('calls onAdd when button clicked', () => {
     const onAdd = vi.fn();
-    render(<ProductCard product={product} isInQuote={false} onAdd={onAdd} />);
+    render(<ProductCard product={product} cartCount={0} onAdd={onAdd} />);
     fireEvent.click(screen.getByRole('button'));
     expect(onAdd).toHaveBeenCalledWith(product);
   });
 
-  it('shows "Add Again" when product is in quote', () => {
-    render(<ProductCard product={product} isInQuote={true} onAdd={vi.fn()} />);
-    expect(screen.getByText('Add Again')).toBeInTheDocument();
+  it('shows cart count when product is in quote', () => {
+    render(<ProductCard product={product} cartCount={1} onAdd={vi.fn()} />);
+    expect(screen.getByText('In cart: 1')).toBeInTheDocument();
   });
 });
 
