@@ -1,16 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
+import { GST_RATE } from '../constants/columnMap';
 
 /**
- * Manages the quote cart.
+ * Manages quote cart.
  *
- * Rules:
- * - marginPercent and cost available on items for quote panel display + slider.
- * - Neither appears in totals or quoteTemplateItems.
- * - If qty is 1 and user presses minus → item is removed automatically.
+ * Margin slider formula (from updated Excel):
+ *   newPostTax = avgLanding / (1 - newMarginDecimal)
+ *   newPreTax  = newPostTax / (1 + GST_RATE)   ← GST_RATE = 0.18 (hardcoded)
  *
- * Margin slider recalculation formula (from Excel):
- *   newPostTax = cost / (1 - newMarginDecimal)
- *   newPreTax  = newPostTax / (1 + gstRate)
+ * marginPercent and avgLanding must never appear in QuoteTemplate or totals.
  */
 export function useQuote() {
   const [items, setItems] = useState([]);
@@ -33,8 +31,8 @@ export function useQuote() {
 
   const updateQuantity = useCallback((articleCode, quantity) => {
     const qty = Math.floor(quantity);
-    // If qty drops to 0 or below → remove item (change #4)
     if (qty <= 0) {
+      // Remove item when qty drops to 0 (#4)
       setItems((prev) => prev.filter((i) => i.product.articleCode !== articleCode));
       return;
     }
@@ -45,7 +43,6 @@ export function useQuote() {
 
   const clearQuote = useCallback(() => setItems([]), []);
 
-  // Standard totals — no margin
   const totals = useMemo(
     () =>
       items.reduce(
@@ -61,15 +58,16 @@ export function useQuote() {
   );
 
   /**
-   * Calculate adjusted totals and per-item prices for a given margin %.
-   * Uses the Excel formula: PostTax = Cost/(1-m), PreTax = PostTax/(1+GST)
+   * Returns items with adjusted dealer prices for a given margin %.
+   * Uses the Excel formula: PostTax = AvgLanding/(1-m), PreTax = PostTax/1.18
    */
   const getAdjustedItems = useCallback(
     (marginPercent) => {
       return items.map(({ product, quantity }) => {
         const m = Math.min(Math.max(marginPercent / 100, 0), 0.99);
-        const adjPostTax = product.cost > 0 ? product.cost / (1 - m) : product.dealerPricePostTax;
-        const adjPreTax = adjPostTax / (1 + product.gstRate);
+        const adjPostTax =
+          product.avgLanding > 0 ? product.avgLanding / (1 - m) : product.dealerPricePostTax;
+        const adjPreTax = adjPostTax / (1 + GST_RATE);
         return {
           ...product,
           quantity,
@@ -87,7 +85,7 @@ export function useQuote() {
     [items]
   );
 
-  // Items for QuoteTemplate — all margin/cost fields stripped
+  // Items for QuoteTemplate — sensitive fields stripped
   const quoteTemplateItems = useMemo(
     () =>
       items.map(({ product, quantity }) => ({
@@ -96,14 +94,14 @@ export function useQuote() {
         articleName: product.articleName,
         category: product.category,
         dimensions: product.dimensions,
+        stockStatus: product.stockStatus,
         mrp: product.mrp,
         rrp: product.rrp,
         dealerPricePreTax: product.dealerPricePreTax,
-        gstRate: product.gstRate,
         dealerPricePostTax: product.dealerPricePostTax,
         quantity,
         lineTotal: product.dealerPricePostTax * quantity,
-        // marginPercent and cost intentionally absent
+        // marginPercent and avgLanding intentionally absent
       })),
     [items]
   );

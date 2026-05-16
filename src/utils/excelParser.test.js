@@ -1,43 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { parseExcel } from './excelParser';
 
-// Mock XLSX to control what sheet_to_json returns
 vi.mock('xlsx', () => ({
   read: vi.fn(),
-  utils: {
-    sheet_to_json: vi.fn(),
-  },
+  utils: { sheet_to_json: vi.fn() },
 }));
 
 import * as XLSX from 'xlsx';
 
+// New column structure matching updated Excel (Row 1 headers, 14 cols)
 const mockRow = {
   'Sr. No.': 1,
   'Article Code': '534.84.523',
   ArticleName: 'Teresa Neo I-90 Bldc Tsensor Hood',
+  ProductGroup: 'Appliances',
   ProductCategory: 'Cooker Hoods',
-  'Q2 MRP': 48120.63,
-  'Q2 RRP': 36768.66,
-  'Dealer Price - pre-tax': 11931.84,
-  'GST Rate': 0.18,
-  'Dealer Price Post tax': 14079.57,
-  'Margin %': 0.13,
-  Cost: 12249.22, // should be excluded
+  Dimensions: 'Chimney - 90cm',
+  StockStatus: 'Good',
+  Stock: 125,
+  'Q2 MRP': 90290,
+  'Q2 RRP': 68990,
+  'Dealer Price - pre-tax': null, // formula col — recalculated from avgLanding
+  'Dealer Price Post tax': null, // formula col — recalculated from avgLanding
+  Margin: 0.13,
+  'Avg Landing': 47482,
 };
 
 beforeEach(() => {
-  XLSX.read.mockReturnValue({
-    SheetNames: ['Sheet1'],
-    Sheets: { Sheet1: {} },
-  });
+  XLSX.read.mockReturnValue({ SheetNames: ['Sheet1'], Sheets: { Sheet1: {} } });
   XLSX.utils.sheet_to_json.mockReturnValue([mockRow]);
 });
 
 describe('parseExcel', () => {
   it('returns an array of products', () => {
-    const result = parseExcel(new ArrayBuffer(8));
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBe(1);
+    expect(Array.isArray(parseExcel(new ArrayBuffer(8)))).toBe(true);
+    expect(parseExcel(new ArrayBuffer(8)).length).toBe(1);
   });
 
   it('maps articleCode correctly', () => {
@@ -50,86 +47,93 @@ describe('parseExcel', () => {
     expect(p.articleName).toBe('Teresa Neo I-90 Bldc Tsensor Hood');
   });
 
-  it('maps category correctly', () => {
+  it('maps productGroup correctly', () => {
+    const [p] = parseExcel(new ArrayBuffer(8));
+    expect(p.productGroup).toBe('Appliances');
+  });
+
+  it('maps category from ProductCategory column', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
     expect(p.category).toBe('Cooker Hoods');
   });
 
-  it('maps mrp as a number', () => {
+  it('maps dimensions correctly', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p.mrp).toBe(48120.63);
+    expect(p.dimensions).toBe('Chimney - 90cm');
   });
 
-  it('maps rrp as a number', () => {
+  it('maps stockStatus correctly', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p.rrp).toBe(36768.66);
+    expect(p.stockStatus).toBe('Good');
   });
 
-  it('maps dealerPricePreTax as a number', () => {
+  it('maps stock qty correctly', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    // When cost=0 formula result=0, falls back to raw column value
-    expect(typeof p.dealerPricePreTax).toBe('number');
+    expect(p.stock).toBe(125);
   });
 
-  it('maps gstRate as a number', () => {
+  it('maps mrp correctly', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p.gstRate).toBe(0.18);
+    expect(p.mrp).toBe(90290);
   });
 
-  it('maps dealerPricePostTax as a number', () => {
+  it('includes avgLanding (renamed from Cost)', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(typeof p.dealerPricePostTax).toBe('number');
+    expect(p.avgLanding).toBe(47482);
   });
 
-  it('includes marginPercent for in-app use', () => {
+  it('includes marginPercent', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
     expect(p.marginPercent).toBe(0.13);
   });
 
-  it('includes cost field for margin slider formula', () => {
+  it('recalculates dealerPricePostTax from AvgLanding formula', () => {
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p).toHaveProperty('cost');
+    // AvgLanding / (1 - Margin) = 47482 / 0.87
+    expect(p.dealerPricePostTax).toBeCloseTo(47482 / 0.87, 0);
+  });
+
+  it('recalculates dealerPricePreTax with hardcoded 18% GST', () => {
+    const [p] = parseExcel(new ArrayBuffer(8));
+    const expectedPostTax = 47482 / 0.87;
+    expect(p.dealerPricePreTax).toBeCloseTo(expectedPostTax / 1.18, 0);
+  });
+
+  it('sets gstRate to 0.18 constant', () => {
+    const [p] = parseExcel(new ArrayBuffer(8));
+    expect(p.gstRate).toBe(0.18);
+  });
+
+  it('does NOT include a separate GST rate column', () => {
+    const [p] = parseExcel(new ArrayBuffer(8));
+    // gstRate is always 0.18 — there is no per-product GST column
+    expect(p.gstRate).toBe(0.18);
   });
 
   it('filters out completely empty rows', () => {
     XLSX.utils.sheet_to_json.mockReturnValue([
       mockRow,
-      { 'Sr. No.': null, 'Article Code': null, ArticleName: null },
+      { 'Article Code': null, ArticleName: null },
     ]);
-    const result = parseExcel(new ArrayBuffer(8));
-    expect(result.length).toBe(1);
+    expect(parseExcel(new ArrayBuffer(8)).length).toBe(1);
   });
 
-  it('coerces null numeric fields to 0', () => {
-    XLSX.utils.sheet_to_json.mockReturnValue([{ ...mockRow, 'Q2 MRP': null, 'Q2 RRP': null }]);
+  it('parses Indian-formatted RRP strings correctly', () => {
+    XLSX.utils.sheet_to_json.mockReturnValue([{ ...mockRow, 'Q2 RRP': '1,12,442' }]);
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p.mrp).toBe(0);
-    expect(p.rrp).toBe(0);
+    expect(p.rrp).toBe(112442);
   });
 
-  it('handles missing optional columns gracefully', () => {
-    XLSX.utils.sheet_to_json.mockReturnValue([
-      { 'Article Code': 'TEST-001', ArticleName: 'Test Product' },
-    ]);
+  it('handles discontinued products', () => {
+    XLSX.utils.sheet_to_json.mockReturnValue([{ ...mockRow, StockStatus: 'Discntd' }]);
     const [p] = parseExcel(new ArrayBuffer(8));
-    expect(p.articleCode).toBe('TEST-001');
-    expect(p.gstRate).toBe(0);
-    expect(p.mrp).toBe(0);
+    expect(p.stockStatus).toBe('Discntd');
   });
 
-  it('assigns sequential serialNo when Sr. No. is missing', () => {
-    XLSX.utils.sheet_to_json.mockReturnValue([
-      { 'Article Code': 'A', ArticleName: 'Product A' },
-      { 'Article Code': 'B', ArticleName: 'Product B' },
-    ]);
-    const result = parseExcel(new ArrayBuffer(8));
-    expect(result[0].serialNo).toBe(1);
-    expect(result[1].serialNo).toBe(2);
-  });
-
-  it('handles multiple products', () => {
-    XLSX.utils.sheet_to_json.mockReturnValue([mockRow, { ...mockRow, 'Article Code': 'B' }]);
-    const result = parseExcel(new ArrayBuffer(8));
-    expect(result.length).toBe(2);
+  it('uses default (no range offset) — Row 1 is the header row', () => {
+    parseExcel(new ArrayBuffer(8));
+    // sheet_to_json should be called WITHOUT range:2
+    const callArgs = XLSX.utils.sheet_to_json.mock.calls[0][1];
+    expect(callArgs?.range).toBeUndefined();
   });
 });

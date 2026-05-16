@@ -1,24 +1,35 @@
-// Maps raw Excel column headers (Row 3) to clean internal property names.
-// NOTE: The Excel file has a display header in Row 1 and real headers in Row 3.
-//       The parser uses range:2 (0-indexed) so Row 3 becomes the header row.
-//
-// marginPercent and cost ARE parsed — needed for margin slider recalculation.
-// Neither must ever appear in the QuoteTemplate image output.
+/**
+ * Maps Excel column headers (Row 1 — now the ONLY header row) to internal names.
+ *
+ * FORMULA CHANGES (vs old sheet):
+ *   Dealer Post-Tax = Avg Landing / (1 - Margin)
+ *   Dealer Pre-Tax  = Dealer Post-Tax / 1.18   ← GST now hardcoded at 18%
+ *
+ * GST Rate is no longer a column — use GST_RATE constant everywhere.
+ *
+ * New columns: ProductGroup, Dimensions, StockStatus, Stock
+ * Renamed:     Cost → Avg Landing   |   Margin % → Margin
+ */
 
 export const COLUMN_MAP = {
   serialNo: 'Sr. No.',
   articleCode: 'Article Code',
   articleName: 'ArticleName',
+  productGroup: 'ProductGroup', // currently all 'Appliances'
   category: 'ProductCategory',
+  dimensions: 'Dimensions',
+  stockStatus: 'StockStatus', // 'Good' | 'Discntd'
+  stock: 'Stock', // qty in warehouse
   mrp: 'Q2 MRP',
   rrp: 'Q2 RRP',
   dealerPricePreTax: 'Dealer Price - pre-tax',
-  gstRate: 'GST Rate',
   dealerPricePostTax: 'Dealer Price Post tax',
-  marginPercent: 'Margin %',
-  cost: 'Cost', // needed for margin slider formula
-  dimensions: 'Dimensions', // new column — graceful fallback when absent
+  marginPercent: 'Margin',
+  avgLanding: 'Avg Landing', // renamed from 'Cost'
 };
+
+/** GST is now hardcoded at 18% in all Excel formulas — no longer a per-product column */
+export const GST_RATE = 0.18;
 
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Smart Quote Generator';
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION

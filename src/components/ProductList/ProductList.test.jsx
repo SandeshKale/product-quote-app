@@ -5,14 +5,23 @@ import ProductList, { ProductCard } from './ProductList';
 const product = {
   serialNo: 1,
   articleCode: '534.84.523',
-  articleName: 'Teresa Neo I-90 Bldc Hood',
+  articleName: 'Teresa Neo Hood',
   category: 'Cooker Hoods',
-  mrp: 48120,
-  rrp: 36768,
-  dealerPricePreTax: 11931,
+  dimensions: 'Chimney - 90cm',
+  stockStatus: 'Good',
+  stock: 125,
+  mrp: 90290,
+  rrp: 68990,
+  dealerPricePreTax: 46254,
   gstRate: 0.18,
-  dealerPricePostTax: 14079,
+  dealerPricePostTax: 54580,
   marginPercent: 0.13,
+};
+const discontinuedProduct = {
+  ...product,
+  articleCode: 'DISC-001',
+  stockStatus: 'Discntd',
+  stock: 5,
 };
 
 describe('ProductCard', () => {
@@ -23,10 +32,25 @@ describe('ProductCard', () => {
 
   it('renders product name', () => {
     render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
-    expect(screen.getByText('Teresa Neo I-90 Bldc Hood')).toBeInTheDocument();
+    expect(screen.getByText('Teresa Neo Hood')).toBeInTheDocument();
   });
 
-  it('shows margin % to the user', () => {
+  it('shows stock count for in-stock products', () => {
+    render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
+    expect(screen.getByText(/In Stock: 125/i)).toBeInTheDocument();
+  });
+
+  it('shows Discontinued badge for discontinued products', () => {
+    render(<ProductCard product={discontinuedProduct} cartCount={0} onAdd={vi.fn()} />);
+    expect(screen.getByText('Discontinued')).toBeInTheDocument();
+  });
+
+  it('shows dimensions', () => {
+    render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
+    expect(screen.getByText('Chimney - 90cm')).toBeInTheDocument();
+  });
+
+  it('shows margin %', () => {
     render(<ProductCard product={product} cartCount={0} onAdd={vi.fn()} />);
     expect(screen.getByText('13%')).toBeInTheDocument();
   });
@@ -38,14 +62,14 @@ describe('ProductCard', () => {
     expect(onAdd).toHaveBeenCalledWith(product);
   });
 
-  it('shows cart count when product is in quote', () => {
-    render(<ProductCard product={product} cartCount={1} onAdd={vi.fn()} />);
-    expect(screen.getByText('In cart: 1')).toBeInTheDocument();
+  it('shows cart count instead of Add Again', () => {
+    render(<ProductCard product={product} cartCount={3} onAdd={vi.fn()} />);
+    expect(screen.getByText('In cart: 3')).toBeInTheDocument();
   });
 });
 
 describe('ProductList', () => {
-  it('renders a list of product cards', () => {
+  it('renders product cards', () => {
     render(
       <ProductList
         products={[product]}
@@ -58,14 +82,14 @@ describe('ProductList', () => {
     expect(screen.getByText('534.84.523')).toBeInTheDocument();
   });
 
-  it('shows empty state when no products', () => {
+  it('shows empty state', () => {
     render(
       <ProductList products={[]} quoteItems={[]} onAdd={vi.fn()} isLoading={false} status="ready" />
     );
     expect(screen.getByText(/No products found/i)).toBeInTheDocument();
   });
 
-  it('shows loading skeletons when isLoading', () => {
+  it('shows loading skeletons', () => {
     render(
       <ProductList
         products={[]}
@@ -78,7 +102,7 @@ describe('ProductList', () => {
     expect(screen.queryByText(/No products/i)).not.toBeInTheDocument();
   });
 
-  it('shows error state when status is error', () => {
+  it('shows error state', () => {
     render(
       <ProductList products={[]} quoteItems={[]} onAdd={vi.fn()} isLoading={false} status="error" />
     );

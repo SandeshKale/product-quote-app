@@ -7,169 +7,115 @@ const products = [
     articleCode: '534.84.523',
     articleName: 'Teresa Neo I-90 Bldc Hood',
     category: 'Cooker Hoods',
-    mrp: 48120,
-    rrp: 36768,
+    dimensions: 'Chimney - 90cm',
+    stockStatus: 'Good',
+    mrp: 90290,
+    rrp: 68990,
     marginPercent: 0.13,
     gstRate: 0.18,
   },
   {
-    articleCode: '538.81.001',
-    articleName: 'Castor Hob 4-Burner',
+    articleCode: '538.66.600',
+    articleName: 'Altius Fs 130 Hob',
     category: 'Hobs',
-    mrp: 22000,
-    rrp: 18000,
-    marginPercent: 0.1,
-    gstRate: 0.08,
+    dimensions: 'Hob - 30cm',
+    stockStatus: 'Good',
+    mrp: 26990,
+    rrp: 20341,
+    marginPercent: 0.13,
+    gstRate: 0.18,
+  },
+  {
+    articleCode: '536.88.313',
+    articleName: 'Frida 90 Hood',
+    category: 'Cooker Hoods',
+    dimensions: 'Chimney - 90cm',
+    stockStatus: 'Discntd',
+    mrp: 0,
+    rrp: 46819,
+    marginPercent: 0.13,
+    gstRate: 0.18,
   },
 ];
 
 beforeEach(() => {
   vi.useFakeTimers();
 });
-
 afterEach(() => {
   vi.useRealTimers();
 });
 
 describe('useSearch', () => {
-  it('returns all products on initial load (empty query)', async () => {
+  it('returns all products on initial load', async () => {
     const { result } = renderHook(() => useSearch(products));
-
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
-    expect(result.current.results.length).toBe(2);
+    expect(result.current.results.length).toBe(3);
   });
 
-  it('does not fire search immediately on keystroke (debounce)', async () => {
+  it('debounces search by 200ms', async () => {
     const { result } = renderHook(() => useSearch(products));
-
     act(() => {
       result.current.setQuery('teresa');
     });
-
-    // Before debounce fires, results should still be all products
-    expect(result.current.query).toBe('teresa');
-    expect(result.current.results.length).toBe(2); // still debouncing
-
+    expect(result.current.results.length).toBe(3); // still debouncing
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
-    // Now debounce has fired
     expect(result.current.results.length).toBe(1);
-    expect(result.current.results[0].articleName).toContain('Teresa');
   });
 
-  it('fires search 200ms after last keystroke', async () => {
+  it('filters by category', async () => {
     const { result } = renderHook(() => useSearch(products));
-
     act(() => {
-      result.current.setQuery('castor'); // unique to Castor Hob — no fuzzy overlap
+      result.current.setFilters((f) => ({ ...f, categories: ['Hobs'] }));
     });
-
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
-    expect(result.current.results.length).toBe(1);
-    expect(result.current.results[0].category).toBe('Hobs');
+    expect(result.current.results.every((r) => r.category === 'Hobs')).toBe(true);
   });
 
-  it('resets to all products when query is cleared', async () => {
+  it('filters by stockStatus', async () => {
     const { result } = renderHook(() => useSearch(products));
-
     act(() => {
-      result.current.setQuery('teresa');
+      result.current.setFilters((f) => ({ ...f, stockStatus: ['Discntd'] }));
     });
-
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
     expect(result.current.results.length).toBe(1);
-
-    act(() => {
-      result.current.setQuery('');
-    });
-
-    await act(async () => {
-      vi.advanceTimersByTime(200);
-    });
-
-    expect(result.current.results.length).toBe(2);
+    expect(result.current.results[0].stockStatus).toBe('Discntd');
   });
 
-  it('returns empty array when no products are provided', async () => {
-    const { result } = renderHook(() => useSearch([]));
-
-    await act(async () => {
-      vi.advanceTimersByTime(200);
-    });
-
-    expect(result.current.results.length).toBe(0);
-  });
-
-  it('derives availableCategories from products', () => {
+  it('derives availableCategories from product data', () => {
     const { result } = renderHook(() => useSearch(products));
     expect(result.current.availableCategories).toContain('Cooker Hoods');
     expect(result.current.availableCategories).toContain('Hobs');
   });
 
-  it('clearFilters resets to default filters', async () => {
+  it('derives availableDimensions from product data', () => {
     const { result } = renderHook(() => useSearch(products));
+    expect(result.current.availableDimensions).toContain('Chimney - 90cm');
+    expect(result.current.availableDimensions).toContain('Hob - 30cm');
+  });
 
+  it('clearFilters resets to all products', async () => {
+    const { result } = renderHook(() => useSearch(products));
     act(() => {
-      result.current.setFilters((prev) => ({ ...prev, categories: ['Hobs'] }));
+      result.current.setFilters((f) => ({ ...f, stockStatus: ['Good'] }));
     });
-
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
-    expect(result.current.results.length).toBe(1);
-
+    expect(result.current.results.length).toBe(2);
     act(() => {
       result.current.clearFilters();
     });
-
     await act(async () => {
       vi.advanceTimersByTime(200);
     });
-
-    expect(result.current.results.length).toBe(2);
-  });
-
-  it('applies category filter', async () => {
-    const { result } = renderHook(() => useSearch(products));
-
-    act(() => {
-      result.current.setFilters((prev) => ({ ...prev, categories: ['Hobs'] }));
-    });
-
-    await act(async () => {
-      vi.advanceTimersByTime(200);
-    });
-
-    expect(result.current.results.length).toBe(1);
-    expect(result.current.results[0].category).toBe('Hobs');
-  });
-
-  it('applies margin filter', async () => {
-    const { result } = renderHook(() => useSearch(products));
-
-    act(() => {
-      result.current.setFilters((prev) => ({
-        ...prev,
-        marginRange: { min: 0.12, max: null },
-      }));
-    });
-
-    await act(async () => {
-      vi.advanceTimersByTime(200);
-    });
-
-    expect(result.current.results.every((r) => r.marginPercent >= 0.12)).toBe(true);
+    expect(result.current.results.length).toBe(3);
   });
 });

@@ -3,6 +3,11 @@ import { SlidersHorizontal, X } from 'lucide-react';
 import { formatMargin, formatCurrency } from '../../utils/formatters';
 import styles from './FilterSidebar.module.css';
 
+const STOCK_STATUS_OPTIONS = [
+  { value: 'Good', label: '✓ In Stock' },
+  { value: 'Discntd', label: '✗ Discontinued' },
+];
+
 export default function FilterSidebar({
   filters,
   setFilters,
@@ -15,8 +20,8 @@ export default function FilterSidebar({
 }) {
   const mrpValues = products.map((p) => p.mrp).filter(Boolean);
   const rrpValues = products.map((p) => p.rrp).filter(Boolean);
-  const maxMRP = mrpValues.length ? Math.ceil(Math.max(...mrpValues)) : 100000;
-  const maxRRP = rrpValues.length ? Math.ceil(Math.max(...rrpValues)) : 100000;
+  const maxMRP = mrpValues.length ? Math.ceil(Math.max(...mrpValues)) : 200000;
+  const maxRRP = rrpValues.length ? Math.ceil(Math.max(...rrpValues)) : 200000;
 
   const hasActive =
     filters.categories.length > 0 ||
@@ -26,43 +31,31 @@ export default function FilterSidebar({
     filters.rrpRange.max != null ||
     filters.marginRange.min != null ||
     filters.marginRange.max != null ||
-    filters.dimensions.length > 0;
+    filters.dimensions.length > 0 ||
+    filters.stockStatus.length > 0;
 
-  const toggleCategory = (cat) =>
+  const toggle = (key, val) =>
     setFilters((p) => ({
       ...p,
-      categories: p.categories.includes(cat)
-        ? p.categories.filter((c) => c !== cat)
-        : [...p.categories, cat],
-    }));
-
-  const toggleDimension = (dim) =>
-    setFilters((p) => ({
-      ...p,
-      dimensions: p.dimensions.includes(dim)
-        ? p.dimensions.filter((d) => d !== dim)
-        : [...p.dimensions, dim],
+      [key]: p[key].includes(val) ? p[key].filter((v) => v !== val) : [...p[key], val],
     }));
 
   const setRange = (key, side, value) =>
+    setFilters((p) => ({ ...p, [key]: { ...p[key], [side]: value ? Number(value) : null } }));
+
+  const setMarginRange = (side, raw) =>
     setFilters((p) => ({
       ...p,
-      [key]: { ...p[key], [side]: value ? Number(value) : null },
+      marginRange: { ...p.marginRange, [side]: raw ? Number(raw) / 100 : null },
     }));
-
-  const setMarginRange = (side, raw) => {
-    const value = raw ? Number(raw) / 100 : null;
-    setFilters((p) => ({ ...p, marginRange: { ...p.marginRange, [side]: value } }));
-  };
 
   return (
     <>
       {isOpen && <div className={styles.overlay} onClick={onClose} />}
-      {/* position:sticky so it stays put while the product list scrolls (#21) */}
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarTitle}>
-            <SlidersHorizontal size={15} />
+            <SlidersHorizontal size={14} />
             <span>Filters</span>
           </div>
           <div className={styles.sidebarActions}>
@@ -77,6 +70,23 @@ export default function FilterSidebar({
           </div>
         </div>
 
+        {/* Stock Status — prominent at top */}
+        <Section title="Stock Status">
+          <div className={styles.checkboxList}>
+            {STOCK_STATUS_OPTIONS.map(({ value, label }) => (
+              <label key={value} className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  checked={filters.stockStatus.includes(value)}
+                  onChange={() => toggle('stockStatus', value)}
+                />
+                <span className={value === 'Discntd' ? styles.discontinued : ''}>{label}</span>
+              </label>
+            ))}
+          </div>
+        </Section>
+
         {/* Category */}
         <Section title="Category">
           <div className={styles.checkboxList}>
@@ -86,7 +96,7 @@ export default function FilterSidebar({
                   type="checkbox"
                   className={styles.checkbox}
                   checked={filters.categories.includes(cat)}
-                  onChange={() => toggleCategory(cat)}
+                  onChange={() => toggle('categories', cat)}
                 />
                 <span>{cat}</span>
               </label>
@@ -94,7 +104,7 @@ export default function FilterSidebar({
           </div>
         </Section>
 
-        {/* Dimensions — only shown when data has this column */}
+        {/* Dimensions dropdown — only when data exists */}
         {availableDimensions.length > 0 && (
           <Section title="Dimensions">
             <select
@@ -158,8 +168,6 @@ export default function FilterSidebar({
             onMax={(v) => setMarginRange('max', v)}
           />
         </Section>
-
-        {/* GST filter removed per change #16 */}
       </aside>
     </>
   );
@@ -205,6 +213,7 @@ FilterSidebar.propTypes = {
     rrpRange: rangeShape.isRequired,
     marginRange: rangeShape.isRequired,
     dimensions: PropTypes.arrayOf(PropTypes.string).isRequired,
+    stockStatus: PropTypes.arrayOf(PropTypes.string).isRequired,
   }).isRequired,
   setFilters: PropTypes.func.isRequired,
   clearFilters: PropTypes.func.isRequired,
@@ -214,7 +223,6 @@ FilterSidebar.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
 };
-
 Section.propTypes = { title: PropTypes.string.isRequired, children: PropTypes.node.isRequired };
 RangeInputs.propTypes = {
   min: PropTypes.number,

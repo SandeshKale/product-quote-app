@@ -6,8 +6,8 @@ export const DEFAULT_FILTERS = {
   mrpRange: { min: null, max: null },
   rrpRange: { min: null, max: null },
   marginRange: { min: null, max: null },
-  dimensions: [], // Dimensions multi-select dropdown
-  // gstRate removed per UX change #16
+  dimensions: [],
+  stockStatus: [], // ['Good'] or ['Discntd'] or [] for all
 };
 
 function hasActiveFilters(f) {
@@ -19,7 +19,8 @@ function hasActiveFilters(f) {
     f.rrpRange.max != null ||
     f.marginRange.min != null ||
     f.marginRange.max != null ||
-    f.dimensions.length > 0
+    f.dimensions.length > 0 ||
+    f.stockStatus.length > 0
   );
 }
 
@@ -29,8 +30,8 @@ export function useSearch(products) {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 200);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setDebouncedQuery(query), 200);
+    return () => clearTimeout(t);
   }, [query]);
 
   const results = useMemo(() => {

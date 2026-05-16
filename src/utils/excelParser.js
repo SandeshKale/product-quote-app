@@ -1,28 +1,28 @@
 import * as XLSX from 'xlsx';
-import { COLUMN_MAP } from '../constants/columnMap';
+import { COLUMN_MAP, GST_RATE } from '../constants/columnMap';
 
 /**
- * Parses an Excel ArrayBuffer and returns normalised product objects.
+ * Parses the Excel file and returns normalised product objects.
  *
- * IMPORTANT: The Excel file has two header rows:
- *   Row 1 — display labels (MD-SKU-Code, MD-SKU-Name …)
- *   Row 2 — empty
- *   Row 3 — real field names (Article Code, ArticleName …)  ← we use this
- *   Row 4+ — data
+ * NEW SHEET STRUCTURE (vs old):
+ *   - Headers are on Row 1 (no more Row 3 offset — range:2 removed)
+ *   - 14 columns: added ProductGroup, Dimensions, StockStatus, Stock, Avg Landing
+ *   - GST is no longer a column — hardcoded at 18% via GST_RATE constant
+ *   - Formulas:
+ *       Dealer Post-Tax = Avg Landing / (1 - Margin)
+ *       Dealer Pre-Tax  = Dealer Post-Tax / 1.18
+ *   - Some RRP values are Indian-formatted strings ('1,12,442') — stripped before parsing
  *
- * SheetJS `range: 2` (0-indexed) makes Row 3 the header row.
- *
- * Fields included:  all visible fields + cost (for margin slider formula)
- * Fields excluded:  none — cost is server-side only, never in quote image
- * marginPercent + cost MUST NEVER be passed to QuoteTemplate.
+ * avgLanding and marginPercent are included for the margin slider formula.
+ * Neither must ever appear in the QuoteTemplate image.
  */
 export function parseExcel(arrayBuffer) {
   const workbook = XLSX.read(arrayBuffer, { type: 'array' });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
 
-  // range:2 = skip rows 1-2 (0-indexed), use row 3 as header
-  const raw = XLSX.utils.sheet_to_json(sheet, { defval: null, range: 2 });
+  // Headers are now on Row 1 — use default (no range offset needed)
+  const raw = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
   return raw.map((row, index) => normaliseRow(row, index)).filter((p) => p !== null);
 }
@@ -31,41 +31,41 @@ function normaliseRow(row, index) {
   const articleCode = safeStr(row[COLUMN_MAP.articleCode]);
   const articleName = safeStr(row[COLUMN_MAP.articleName]);
 
-  // Skip completely empty rows or internal label rows
+  // Skip header leakage or truly empty rows
   if (!articleCode && !articleName) return null;
-  // Skip the Row 1 display-label row that leaks through as a data row
-  if (articleCode === 'MD - SKU - Code' || articleName === 'MD - SKU - Name') return null;
 
-  const cost = safeNum(row[COLUMN_MAP.cost]);
-  const gstRate = safeNum(row[COLUMN_MAP.gstRate]);
   const marginPercent = safeNum(row[COLUMN_MAP.marginPercent]);
+  const avgLanding = safeNum(row[COLUMN_MAP.avgLanding]);
 
-  // Recalculate dealer prices from formula to ensure consistency
-  // Formula: PostTax = Cost / (1 - Margin%)   PreTax = PostTax / (1 + GST)
+  // Recalculate from Excel formula:
+  //   Post-Tax = AvgLanding / (1 - Margin)
+  //   Pre-Tax  = Post-Tax / 1.18
   const dealerPricePostTax =
-    cost > 0 && marginPercent < 1
-      ? cost / (1 - marginPercent)
+    avgLanding > 0 && marginPercent < 1
+      ? avgLanding / (1 - marginPercent)
       : safeNum(row[COLUMN_MAP.dealerPricePostTax]);
-  const dealerPricePreTax =
-    dealerPricePostTax > 0 && gstRate > 0
-      ? dealerPricePostTax / (1 + gstRate)
-      : safeNum(row[COLUMN_MAP.dealerPricePreTax]);
 
-  const dimensions = safeStr(row[COLUMN_MAP.dimensions]); // '' when column absent
+  const dealerPricePreTax =
+    dealerPricePostTax > 0
+      ? dealerPricePostTax / (1 + GST_RATE)
+      : safeNum(row[COLUMN_MAP.dealerPricePreTax]);
 
   return {
     serialNo: safeNum(row[COLUMN_MAP.serialNo]) || index + 1,
     articleCode,
     articleName,
+    productGroup: safeStr(row[COLUMN_MAP.productGroup]),
     category: safeStr(row[COLUMN_MAP.category]),
+    dimensions: safeStr(row[COLUMN_MAP.dimensions]) || null,
+    stockStatus: safeStr(row[COLUMN_MAP.stockStatus]) || null,
+    stock: safeNum(row[COLUMN_MAP.stock]),
     mrp: safeNum(row[COLUMN_MAP.mrp]),
-    rrp: safeNum(row[COLUMN_MAP.rrp]),
+    rrp: safeIndianNum(row[COLUMN_MAP.rrp]), // handles '1,12,442' strings
     dealerPricePreTax,
-    gstRate,
     dealerPricePostTax,
+    gstRate: GST_RATE, // always 0.18 — kept for display compatibility
     marginPercent,
-    cost,
-    dimensions: dimensions || null, // null when column not in sheet yet
+    avgLanding, // for margin slider recalculation
   };
 }
 
@@ -78,4 +78,19 @@ function safeNum(val) {
   if (val == null) return 0;
   const n = Number(val);
   return isNaN(n) ? 0 : n;
+}
+
+/**
+ * Parses Indian-formatted number strings like '1,12,442' → 112442.
+ * Also handles plain numbers gracefully.
+ */
+function safeIndianNum(val) {
+  if (val == null) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (typeof val === 'string') {
+    const stripped = val.replace(/,/g, '');
+    const n = Number(stripped);
+    return isNaN(n) ? 0 : n;
+  }
+  return 0;
 }

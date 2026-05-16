@@ -151,3 +151,30 @@
     background-position: -200% 0;
   }
 }
+
+.discontinued {
+  opacity: 0.72;
+  border-style: dashed;
+}
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.badgeGood {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--success);
+  background: var(--success-bg);
+  padding: 1px 7px;
+  border-radius: 100px;
+}
+.badgeDiscntd {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--error);
+  background: var(--error-bg);
+  padding: 1px 7px;
+  border-radius: 100px;
+}

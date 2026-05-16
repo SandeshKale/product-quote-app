@@ -5,17 +5,26 @@ import styles from './ProductList.module.css';
 
 export function ProductCard({ product, cartCount, onAdd }) {
   const inCart = cartCount > 0;
+  const discontinued = product.stockStatus === 'Discntd';
 
   return (
-    <div className={`${styles.card} ${inCart ? styles.inCart : ''}`}>
+    <div
+      className={`${styles.card} ${inCart ? styles.inCart : ''} ${discontinued ? styles.discontinued : ''}`}
+    >
       <div className={styles.cardHeader}>
         <span className={styles.code}>{product.articleCode}</span>
-        <span className={styles.category}>{product.category}</span>
+        <div className={styles.badges}>
+          {discontinued ? (
+            <span className={styles.badgeDiscntd}>Discontinued</span>
+          ) : (
+            <span className={styles.badgeGood}>In Stock: {product.stock}</span>
+          )}
+          <span className={styles.category}>{product.category}</span>
+        </div>
       </div>
 
       <h3 className={styles.name}>{product.articleName}</h3>
 
-      {/* Dimensions — only shown when present (#17) */}
       {product.dimensions && <p className={styles.dimensions}>{product.dimensions}</p>}
 
       <div className={styles.priceGrid}>
@@ -37,7 +46,6 @@ export function ProductCard({ product, cartCount, onAdd }) {
           aria-label={`Add ${product.articleName} to quote`}
         >
           <Plus size={14} />
-          {/* Show cart count instead of "Add Again" (#10) */}
           <span>{inCart ? `In cart: ${cartCount}` : 'Add to Quote'}</span>
         </button>
       </div>
@@ -116,6 +124,8 @@ const productShape = PropTypes.shape({
   articleName: PropTypes.string,
   category: PropTypes.string,
   dimensions: PropTypes.string,
+  stockStatus: PropTypes.string,
+  stock: PropTypes.number,
   mrp: PropTypes.number,
   rrp: PropTypes.number,
   dealerPricePreTax: PropTypes.number,
@@ -129,7 +139,6 @@ ProductCard.propTypes = {
   cartCount: PropTypes.number.isRequired,
   onAdd: PropTypes.func.isRequired,
 };
-
 ProductList.propTypes = {
   products: PropTypes.arrayOf(productShape).isRequired,
   quoteItems: PropTypes.arrayOf(PropTypes.shape({ product: productShape })).isRequired,

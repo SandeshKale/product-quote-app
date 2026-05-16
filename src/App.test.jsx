@@ -11,24 +11,32 @@ vi.mock('./hooks/useDataSync', () => ({
         articleCode: '534.84.523',
         articleName: 'Teresa Neo I-90 Bldc Hood',
         category: 'Cooker Hoods',
-        mrp: 48120,
-        rrp: 36768,
-        dealerPricePreTax: 11931,
+        dimensions: 'Chimney - 90cm',
+        stockStatus: 'Good',
+        stock: 125,
+        mrp: 90290,
+        rrp: 68990,
+        dealerPricePreTax: 46254,
         gstRate: 0.18,
-        dealerPricePostTax: 14079,
+        dealerPricePostTax: 54580,
         marginPercent: 0.13,
+        avgLanding: 47482,
       },
       {
         serialNo: 2,
-        articleCode: '538.81.001',
-        articleName: 'Castor Hob 4-Burner',
+        articleCode: '538.66.600',
+        articleName: 'Altius Fs 130 Hob',
         category: 'Hobs',
-        mrp: 22000,
-        rrp: 18000,
-        dealerPricePreTax: 5000,
-        gstRate: 0.08,
-        dealerPricePostTax: 5400,
-        marginPercent: 0.1,
+        dimensions: 'Hob - 30cm',
+        stockStatus: 'Good',
+        stock: 3,
+        mrp: 26990,
+        rrp: 20341,
+        dealerPricePreTax: 14398,
+        gstRate: 0.18,
+        dealerPricePostTax: 16989,
+        marginPercent: 0.13,
+        avgLanding: 14780,
       },
     ],
     metadata: { fileName: 'TestData.xlsx', modifiedTime: '2026-05-15T09:00:00Z' },
@@ -71,7 +79,7 @@ describe('App', () => {
   it('renders product list initially', () => {
     render(<App />);
     expect(screen.getByText('Teresa Neo I-90 Bldc Hood')).toBeInTheDocument();
-    expect(screen.getByText('Castor Hob 4-Burner')).toBeInTheDocument();
+    expect(screen.getByText('Altius Fs 130 Hob')).toBeInTheDocument();
   });
 
   it('shows product count in search bar', async () => {

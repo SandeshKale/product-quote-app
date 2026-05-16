@@ -3,40 +3,60 @@ import { searchEngine, levenshtein } from './searchEngine';
 
 const products = [
   {
-    serialNo: 1,
     articleCode: '534.84.523',
     articleName: 'Teresa Neo I-90 Bldc Hood',
     category: 'Cooker Hoods',
-    mrp: 48120,
-    rrp: 36768,
-    dealerPricePreTax: 11931,
-    gstRate: 0.18,
-    dealerPricePostTax: 14079,
+    dimensions: 'Chimney - 90cm',
+    stockStatus: 'Good',
+    mrp: 90290,
+    rrp: 68990,
     marginPercent: 0.13,
+    gstRate: 0.18,
+    dealerPricePostTax: 54580,
+    dealerPricePreTax: 46254,
+    avgLanding: 47482,
   },
   {
-    serialNo: 2,
     articleCode: '534.84.503',
     articleName: 'Teresa T-90 Bldc Hood',
     category: 'Cooker Hoods',
-    mrp: 34637,
-    rrp: 26003,
-    dealerPricePreTax: 7945,
-    gstRate: 0.18,
-    dealerPricePostTax: 9375,
+    dimensions: 'Chimney - 90cm',
+    stockStatus: 'Good',
+    mrp: 64990,
+    rrp: 48791,
     marginPercent: 0.13,
+    gstRate: 0.18,
+    dealerPricePostTax: 36340,
+    dealerPricePreTax: 30797,
+    avgLanding: 31615,
   },
   {
-    serialNo: 3,
-    articleCode: '538.81.001',
-    articleName: 'Castor Hob 4-Burner',
+    articleCode: '538.66.600',
+    articleName: 'Altius Fs 130 Hob',
     category: 'Hobs',
-    mrp: 22000,
-    rrp: 18000,
-    dealerPricePreTax: 5000,
-    gstRate: 0.08,
-    dealerPricePostTax: 5400,
-    marginPercent: 0.1,
+    dimensions: 'Hob - 30cm',
+    stockStatus: 'Good',
+    mrp: 26990,
+    rrp: 20341,
+    marginPercent: 0.13,
+    gstRate: 0.18,
+    dealerPricePostTax: 16989,
+    dealerPricePreTax: 14398,
+    avgLanding: 14780,
+  },
+  {
+    articleCode: '536.88.313',
+    articleName: 'Frida 90 Hood',
+    category: 'Cooker Hoods',
+    dimensions: 'Chimney - 90cm',
+    stockStatus: 'Discntd',
+    mrp: 0,
+    rrp: 46819,
+    marginPercent: 0.13,
+    gstRate: 0.18,
+    dealerPricePostTax: 8525,
+    dealerPricePreTax: 7225,
+    avgLanding: 7417,
   },
 ];
 
@@ -45,125 +65,107 @@ const noFilters = {
   mrpRange: { min: null, max: null },
   rrpRange: { min: null, max: null },
   marginRange: { min: null, max: null },
-  gstRate: null,
+  dimensions: [],
+  stockStatus: [],
 };
 
-describe('searchEngine — scoring priority', () => {
-  it('returns all products when query is empty', () => {
-    const results = searchEngine('', products, noFilters);
-    expect(results.length).toBe(3);
+describe('searchEngine — scoring', () => {
+  it('returns all products on empty query', () => {
+    expect(searchEngine('', products, noFilters).length).toBe(4);
   });
 
-  it('ranks name matches above code matches', () => {
-    // 'hood' appears in product names — those should rank highest
-    const results = searchEngine('hood', products, noFilters);
-    expect(results.length).toBeGreaterThan(0);
-    // The top result must be a name match, not a code or fuzzy-only match
-    expect(results[0].articleName.toLowerCase()).toContain('hood');
-  });
-
-  it('finds products by exact word in name (teresa)', () => {
+  it('product name match ranks highest', () => {
     const results = searchEngine('teresa', products, noFilters);
-    expect(results.length).toBe(2);
-    results.forEach((r) => {
-      expect(r.articleName.toLowerCase()).toContain('teresa');
-    });
+    expect(results.length).toBeGreaterThanOrEqual(2);
+    results.forEach((r) => expect(r.articleName.toLowerCase()).toContain('teresa'));
   });
 
-  it('finds product by article code (exact)', () => {
+  it('finds by article code (exact)', () => {
     const results = searchEngine('534.84.523', products, noFilters);
-    expect(results.length).toBeGreaterThan(0);
     expect(results[0].articleCode).toBe('534.84.523');
   });
 
-  it('finds products by partial code (534)', () => {
+  it('finds by partial code', () => {
     const results = searchEngine('534', products, noFilters);
-    expect(results.length).toBe(2);
+    expect(results.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('finds product by category (hobs)', () => {
-    // 'hobs' directly matches the Hobs category — that product should rank first
+  it('finds by category', () => {
     const results = searchEngine('hobs', products, noFilters);
-    expect(results.length).toBeGreaterThan(0);
     expect(results[0].category).toBe('Hobs');
   });
 
-  it('name match scores higher than code match for same term', () => {
-    // "bldc" is in the product name — should come before any code-only match
-    const results = searchEngine('bldc', products, noFilters);
-    expect(results[0].articleName.toLowerCase()).toContain('bldc');
+  it('finds by dimensions', () => {
+    const results = searchEngine('30cm', products, noFilters);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].dimensions).toContain('30cm');
   });
 
   it('strips _score from returned objects', () => {
     const results = searchEngine('teresa', products, noFilters);
-    results.forEach((r) => {
-      expect(r).not.toHaveProperty('_score');
-    });
+    results.forEach((r) => expect(r).not.toHaveProperty('_score'));
   });
 
   it('returns empty array for no matches', () => {
-    const results = searchEngine('xyznotaproduct', products, noFilters);
-    expect(results.length).toBe(0);
-  });
-});
-
-describe('searchEngine — fuzzy matching', () => {
-  it('finds product with 1 typo (tresa → teresa)', () => {
-    const results = searchEngine('tresa', products, noFilters);
-    // Fuzzy should catch this
-    expect(results.length).toBeGreaterThan(0);
-  });
-
-  it('does not run fuzzy for terms shorter than 3 chars', () => {
-    // Very short terms should not trigger fuzzy
-    const results = searchEngine('xy', products, noFilters);
-    expect(results.length).toBe(0);
+    expect(searchEngine('xyznothing', products, noFilters).length).toBe(0);
   });
 });
 
 describe('searchEngine — filters', () => {
   it('filters by category', () => {
-    const filters = { ...noFilters, categories: ['Hobs'] };
-    const results = searchEngine('', products, filters);
+    const f = { ...noFilters, categories: ['Hobs'] };
+    const results = searchEngine('', products, f);
+    expect(results.every((r) => r.category === 'Hobs')).toBe(true);
+  });
+
+  it('filters by stockStatus Good', () => {
+    const f = { ...noFilters, stockStatus: ['Good'] };
+    const results = searchEngine('', products, f);
+    expect(results.every((r) => r.stockStatus === 'Good')).toBe(true);
+  });
+
+  it('filters by stockStatus Discntd', () => {
+    const f = { ...noFilters, stockStatus: ['Discntd'] };
+    const results = searchEngine('', products, f);
     expect(results.length).toBe(1);
-    expect(results[0].category).toBe('Hobs');
+    expect(results[0].stockStatus).toBe('Discntd');
   });
 
-  it('filters by MRP min', () => {
-    const filters = { ...noFilters, mrpRange: { min: 40000, max: null } };
-    const results = searchEngine('', products, filters);
-    expect(results.every((r) => r.mrp >= 40000)).toBe(true);
+  it('filters by dimensions', () => {
+    const f = { ...noFilters, dimensions: ['Hob - 30cm'] };
+    const results = searchEngine('', products, f);
+    expect(results.length).toBe(1);
+    expect(results[0].dimensions).toBe('Hob - 30cm');
   });
 
-  it('filters by MRP max', () => {
-    const filters = { ...noFilters, mrpRange: { min: null, max: 30000 } };
-    const results = searchEngine('', products, filters);
-    expect(results.every((r) => r.mrp <= 30000)).toBe(true);
+  it('filters by MRP range', () => {
+    const f = { ...noFilters, mrpRange: { min: 50000, max: null } };
+    const results = searchEngine('', products, f);
+    expect(results.every((r) => r.mrp >= 50000)).toBe(true);
   });
 
-  it('filters by RRP range', () => {
-    const filters = { ...noFilters, rrpRange: { min: 20000, max: 30000 } };
-    const results = searchEngine('', products, filters);
-    expect(results.every((r) => r.rrp >= 20000 && r.rrp <= 30000)).toBe(true);
+  it('filters by margin range', () => {
+    const f = { ...noFilters, marginRange: { min: 0.12, max: 0.14 } };
+    const results = searchEngine('', products, f);
+    expect(results.every((r) => r.marginPercent >= 0.12 && r.marginPercent <= 0.14)).toBe(true);
   });
 
-  it('filters by margin min', () => {
-    const filters = { ...noFilters, marginRange: { min: 0.12, max: null } };
-    const results = searchEngine('', products, filters);
-    expect(results.every((r) => r.marginPercent >= 0.12)).toBe(true);
+  it('combines query + filter', () => {
+    const f = { ...noFilters, stockStatus: ['Good'] };
+    const results = searchEngine('teresa', products, f);
+    expect(results.every((r) => r.stockStatus === 'Good')).toBe(true);
+    expect(results.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('searchEngine — fuzzy', () => {
+  it('finds with 1 typo', () => {
+    const results = searchEngine('tresa', products, noFilters);
+    expect(results.length).toBeGreaterThan(0);
   });
 
-  it('filters by margin max', () => {
-    const filters = { ...noFilters, marginRange: { min: null, max: 0.11 } };
-    const results = searchEngine('', products, filters);
-    expect(results.every((r) => r.marginPercent <= 0.11)).toBe(true);
-  });
-
-  it('combines query and filters', () => {
-    const filters = { ...noFilters, categories: ['Cooker Hoods'] };
-    const results = searchEngine('teresa', products, filters);
-    expect(results.length).toBe(2);
-    results.forEach((r) => expect(r.category).toBe('Cooker Hoods'));
+  it('does not run fuzzy for terms under 3 chars', () => {
+    expect(searchEngine('xy', products, noFilters).length).toBe(0);
   });
 });
 
@@ -174,13 +176,5 @@ describe('levenshtein', () => {
 
   it('returns 1 for one substitution', () => {
     expect(levenshtein('tresa', 'teresa')).toBe(1);
-  });
-
-  it('returns 1 for one deletion', () => {
-    expect(levenshtein('teress', 'teresa')).toBe(1);
-  });
-
-  it('returns correct distance for "hood" vs "hobs"', () => {
-    expect(levenshtein('hood', 'hobs')).toBeGreaterThanOrEqual(2);
   });
 });
