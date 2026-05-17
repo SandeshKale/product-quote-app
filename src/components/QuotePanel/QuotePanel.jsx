@@ -11,7 +11,7 @@ import {
   Edit2,
   RotateCcw,
 } from 'lucide-react';
-import { formatCurrency, formatMargin, generateQuoteNumber } from '../../utils/formatters';
+import { formatCurrency, generateQuoteNumber } from '../../utils/formatters';
 import { exportAndShare } from '../../services/quoteExporter';
 import { APP_NAME } from '../../constants/columnMap';
 import QuoteTemplate from '../QuoteTemplate/QuoteTemplate';
