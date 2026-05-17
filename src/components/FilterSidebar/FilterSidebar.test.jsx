@@ -46,14 +46,14 @@ describe('FilterSidebar', () => {
     expect(screen.getByText('Hobs')).toBeInTheDocument();
   });
 
-  it('renders Stock Status filter', () => {
+  it('renders Stock Status filter with In Stock and Discontinued', () => {
     render(<FilterSidebar {...baseProps} />);
     expect(screen.getByText('Stock Status')).toBeInTheDocument();
-    expect(screen.getByText(/In Stock/i)).toBeInTheDocument();
-    expect(screen.getByText(/Discontinued/i)).toBeInTheDocument();
+    expect(screen.getByText(/In Stock/)).toBeInTheDocument();
+    expect(screen.getByText(/Discontinued/)).toBeInTheDocument();
   });
 
-  it('does NOT show GST filter (removed)', () => {
+  it('does NOT show GST filter', () => {
     render(<FilterSidebar {...baseProps} />);
     expect(screen.queryByText(/GST Rate/i)).not.toBeInTheDocument();
   });
@@ -63,14 +63,44 @@ describe('FilterSidebar', () => {
     expect(screen.getByText('Margin %')).toBeInTheDocument();
   });
 
-  it('shows Dimensions dropdown when data present', () => {
+  it('shows Dimensions trigger button when dimensions data present', () => {
     render(<FilterSidebar {...baseProps} />);
     expect(screen.getByText('Dimensions')).toBeInTheDocument();
-    // Dimensions now uses checkboxes in a scrollable box (no listbox)
+    expect(screen.getByText('All dimensions')).toBeInTheDocument();
+  });
+
+  it('opens Dimensions dropdown on trigger click', () => {
+    render(<FilterSidebar {...baseProps} />);
+    fireEvent.click(screen.getByText('All dimensions'));
+    expect(screen.getByPlaceholderText(/search dimensions/i)).toBeInTheDocument();
+  });
+
+  it('filters dimension options via search', () => {
+    render(<FilterSidebar {...baseProps} />);
+    fireEvent.click(screen.getByText('All dimensions'));
+    fireEvent.change(screen.getByPlaceholderText(/search dimensions/i), {
+      target: { value: 'chimney' },
+    });
+    expect(screen.getByText('Chimney - 90cm')).toBeInTheDocument();
+    expect(screen.queryByText('Hob - 30cm')).not.toBeInTheDocument();
+  });
+
+  it('shows no results message when search matches nothing', () => {
+    render(<FilterSidebar {...baseProps} />);
+    fireEvent.click(screen.getByText('All dimensions'));
+    fireEvent.change(screen.getByPlaceholderText(/search dimensions/i), {
+      target: { value: 'xyz' },
+    });
+    expect(screen.getByText('No results')).toBeInTheDocument();
+  });
+
+  it('shows selected count in trigger when dimensions selected', () => {
+    const filtersWithDim = { ...defaultFilters, dimensions: ['Chimney - 90cm'] };
+    render(<FilterSidebar {...baseProps} filters={filtersWithDim} />);
     expect(screen.getByText('Chimney - 90cm')).toBeInTheDocument();
   });
 
-  it('hides Dimensions when no data', () => {
+  it('hides Dimensions section when no dimension data', () => {
     render(<FilterSidebar {...baseProps} availableDimensions={[]} />);
     expect(screen.queryByText('Dimensions')).not.toBeInTheDocument();
   });
@@ -114,32 +144,38 @@ describe('FilterSidebar', () => {
     expect(setFilters).toHaveBeenCalled();
   });
 
+  it('calls setFilters on MRP max change', () => {
+    const setFilters = vi.fn();
+    render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
+    fireEvent.change(screen.getAllByRole('spinbutton')[1], { target: { value: '50000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters on RRP min change', () => {
+    const setFilters = vi.fn();
+    render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
+    fireEvent.change(screen.getAllByRole('spinbutton')[2], { target: { value: '5000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('calls setFilters on RRP max change', () => {
+    const setFilters = vi.fn();
+    render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
+    fireEvent.change(screen.getAllByRole('spinbutton')[3], { target: { value: '40000' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
+
   it('calls setFilters on margin min change', () => {
     const setFilters = vi.fn();
     render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
-    const inputs = screen.getAllByRole('spinbutton');
-    fireEvent.change(inputs[4], { target: { value: '10' } });
+    fireEvent.change(screen.getAllByRole('spinbutton')[4], { target: { value: '10' } });
     expect(setFilters).toHaveBeenCalled();
   });
-});
 
-it('calls setFilters on RRP min change', () => {
-  const setFilters = vi.fn();
-  render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
-  fireEvent.change(screen.getAllByRole('spinbutton')[2], { target: { value: '5000' } });
-  expect(setFilters).toHaveBeenCalled();
-});
-
-it('calls setFilters on RRP max change', () => {
-  const setFilters = vi.fn();
-  render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
-  fireEvent.change(screen.getAllByRole('spinbutton')[3], { target: { value: '40000' } });
-  expect(setFilters).toHaveBeenCalled();
-});
-
-it('calls setFilters on margin max change', () => {
-  const setFilters = vi.fn();
-  render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
-  fireEvent.change(screen.getAllByRole('spinbutton')[5], { target: { value: '20' } });
-  expect(setFilters).toHaveBeenCalled();
+  it('calls setFilters on margin max change', () => {
+    const setFilters = vi.fn();
+    render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
+    fireEvent.change(screen.getAllByRole('spinbutton')[5], { target: { value: '20' } });
+    expect(setFilters).toHaveBeenCalled();
+  });
 });

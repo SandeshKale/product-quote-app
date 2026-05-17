@@ -24,22 +24,29 @@ export default function App() {
     availableCategories,
     availableDimensions,
   } = useSearch(products);
+
+  // New useQuote API — uses enrichedItems + adjustedTotals
   const {
     items,
-    totals,
+    enrichedItems,
+    adjustedTotals,
     quoteTemplateItems,
+    marginOverrides,
+    weightedMarginPct,
+    hasAnyOverride,
     addItem,
     removeItem,
     updateQuantity,
     clearQuote,
-    getAdjustedItems,
+    setItemMargin,
+    resetItemMargin,
     itemCount,
   } = useQuote();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
 
-  // Dark mode (#12) — persisted to localStorage
+  // Dark mode — persisted to localStorage
   const [darkMode, setDarkMode] = useState(() => {
     try {
       return localStorage.getItem('pq_dark') === 'true';
@@ -52,7 +59,7 @@ export default function App() {
     try {
       localStorage.setItem('pq_dark', darkMode ? 'true' : 'false');
     } catch {
-      /* */
+      /**/
     }
   }, [darkMode]);
 
@@ -81,7 +88,6 @@ export default function App() {
         />
 
         <main className={styles.main}>
-          {/* Mobile filter toggle */}
           <div className={styles.mobileBar}>
             <button className={styles.filterToggle} onClick={() => setIsFilterOpen(true)}>
               <SlidersHorizontal size={15} />
@@ -89,7 +95,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Search — sticky inside main column (#9) */}
           <div className={styles.searchArea}>
             <SearchBar
               query={query}
@@ -111,7 +116,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* Quote bar — pinned to bottom (#1) */}
+      {/* Quote bar — position:fixed bottom */}
       <div className={styles.quoteBar}>
         <div className={styles.quoteBarContent}>
           <span className={styles.quoteBarSummary}>
@@ -120,7 +125,7 @@ export default function App() {
             ) : (
               <>
                 {itemCount} item{itemCount !== 1 ? 's' : ''} ·{' '}
-                <strong>{formatCurrency(totals.totalDealerPostTax)}</strong> dealer post-tax
+                <strong>{formatCurrency(adjustedTotals.totalDealerPostTax)}</strong> dealer post-tax
               </>
             )}
           </span>
@@ -137,15 +142,19 @@ export default function App() {
       </div>
 
       <QuotePanel
-        items={items}
-        totals={totals}
+        enrichedItems={enrichedItems}
+        adjustedTotals={adjustedTotals}
         quoteTemplateItems={quoteTemplateItems}
         onRemove={removeItem}
         onUpdateQuantity={updateQuantity}
         onClear={clearQuote}
         isOpen={isQuoteOpen}
         onClose={() => setIsQuoteOpen(false)}
-        getAdjustedItems={getAdjustedItems}
+        setItemMargin={setItemMargin}
+        resetItemMargin={resetItemMargin}
+        marginOverrides={marginOverrides}
+        weightedMarginPct={weightedMarginPct}
+        hasAnyOverride={hasAnyOverride}
       />
     </div>
   );

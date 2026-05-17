@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { formatMargin, formatCurrency } from '../../utils/formatters';
+import { SlidersHorizontal, X, ChevronDown, Search } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import styles from './FilterSidebar.module.css';
 
 const STOCK_STATUS_OPTIONS = [
@@ -104,32 +105,16 @@ export default function FilterSidebar({
           </div>
         </Section>
 
-        {/* Dimensions — multi-select with checkboxes in a scrollable box (#7) */}
+        {/* Dimensions — searchable multi-select dropdown (#2) */}
         {availableDimensions.length > 0 && (
           <Section
             title={`Dimensions${filters.dimensions.length > 0 ? ` (${filters.dimensions.length})` : ''}`}
           >
-            <div className={styles.dimBox}>
-              {availableDimensions.map((d) => (
-                <label key={d} className={styles.dimOption}>
-                  <input
-                    type="checkbox"
-                    checked={filters.dimensions.includes(d)}
-                    onChange={() => toggle('dimensions', d)}
-                  />
-                  <span>{d}</span>
-                </label>
-              ))}
-            </div>
-            {filters.dimensions.length > 0 && (
-              <button
-                className={styles.clearBtn}
-                style={{ marginTop: 6 }}
-                onClick={() => setFilters((p) => ({ ...p, dimensions: [] }))}
-              >
-                Clear dimensions
-              </button>
-            )}
+            <DimensionsDropdown
+              options={availableDimensions}
+              selected={filters.dimensions}
+              onChange={(dims) => setFilters((p) => ({ ...p, dimensions: dims }))}
+            />
           </Section>
         )}
 
@@ -170,6 +155,132 @@ export default function FilterSidebar({
         </Section>
       </aside>
     </>
+  );
+}
+
+/** Searchable multi-select dropdown for Dimensions */
+function DimensionsDropdown({ options, selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const filtered = options.filter((o) => o.toLowerCase().includes(search.toLowerCase()));
+
+  const toggle = (val) =>
+    onChange(selected.includes(val) ? selected.filter((v) => v !== val) : [...selected, val]);
+
+  const clearAll = (e) => {
+    e.stopPropagation();
+    onChange([]);
+    setSearch('');
+  };
+
+  // Build trigger label
+  const triggerLabel =
+    selected.length === 0
+      ? 'All dimensions'
+      : selected.length === 1
+        ? selected[0]
+        : `${selected.length} selected`;
+
+  return (
+    <div className={styles.dimDropdown} ref={ref}>
+      {/* Trigger button */}
+      <button
+        type="button"
+        className={styles.dimTrigger}
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span
+          className={selected.length > 0 ? styles.dimTriggerActive : styles.dimTriggerPlaceholder}
+        >
+          {triggerLabel}
+        </span>
+        <div className={styles.dimTriggerIcons}>
+          {selected.length > 0 && (
+            <span
+              className={styles.dimClearAll}
+              onClick={clearAll}
+              role="button"
+              tabIndex={0}
+              aria-label="Clear dimensions"
+            >
+              ✕
+            </span>
+          )}
+          <ChevronDown size={14} className={open ? styles.chevronOpen : ''} />
+        </div>
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div className={styles.dimPanel} role="listbox" aria-multiselectable="true">
+          {/* Search input */}
+          <div className={styles.dimSearch}>
+            <Search size={13} className={styles.dimSearchIcon} />
+            <input
+              type="text"
+              className={styles.dimSearchInput}
+              placeholder="Search dimensions…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+
+          {/* Options */}
+          <div className={styles.dimOptions}>
+            {filtered.length === 0 ? (
+              <span className={styles.dimNoMatch}>No results</span>
+            ) : (
+              filtered.map((opt) => (
+                <label
+                  key={opt}
+                  className={styles.dimOption}
+                  role="option"
+                  aria-selected={selected.includes(opt)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(opt)}
+                    onChange={() => toggle(opt)}
+                  />
+                  <span>{opt}</span>
+                </label>
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          {selected.length > 0 && (
+            <div className={styles.dimFooter}>
+              <span className={styles.dimCount}>{selected.length} selected</span>
+              <button
+                className={styles.dimClearBtn}
+                onClick={() => {
+                  onChange([]);
+                  setSearch('');
+                }}
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -221,6 +332,11 @@ FilterSidebar.propTypes = {
   products: PropTypes.arrayOf(PropTypes.object).isRequired,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+};
+DimensionsDropdown.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selected: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onChange: PropTypes.func.isRequired,
 };
 Section.propTypes = { title: PropTypes.string.isRequired, children: PropTypes.node.isRequired };
 RangeInputs.propTypes = {

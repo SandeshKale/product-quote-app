@@ -15,7 +15,7 @@ export function ProductCard({ product, cartCount, onAdd }) {
         <span className={styles.code}>{product.articleCode}</span>
         <div className={styles.badges}>
           {discontinued ? (
-            <span className={styles.badgeDiscntd}>Discontinued</span>
+            <span className={styles.badgeDiscntd}>Discontinued · Stock: {product.stock}</span>
           ) : (
             <span className={styles.badgeGood}>In Stock: {product.stock}</span>
           )}

@@ -42,7 +42,7 @@ describe('ProductCard', () => {
 
   it('shows Discontinued badge for discontinued products', () => {
     render(<ProductCard product={discontinuedProduct} cartCount={0} onAdd={vi.fn()} />);
-    expect(screen.getByText('Discontinued')).toBeInTheDocument();
+    expect(screen.getByText(/Discontinued · Stock:/)).toBeInTheDocument();
   });
 
   it('shows dimensions', () => {

@@ -175,3 +175,167 @@
     display: flex;
   }
 }
+
+/* ── Searchable Dimensions Dropdown (#2) ─────────────────────────── */
+.dimDropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dimTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.15s;
+}
+.dimTrigger:hover,
+.dimTrigger:focus {
+  border-color: var(--border-focus);
+  outline: none;
+}
+
+.dimTriggerActive {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: left;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dimTriggerPlaceholder {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: left;
+  flex: 1;
+}
+
+.dimTriggerIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dimClearAll {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+.dimClearAll:hover {
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+  transition: transform 0.15s;
+}
+
+.dimPanel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border-focus);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.dimSearch {
+  position: relative;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dimSearchIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.dimSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: transparent;
+}
+.dimSearchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.dimOptions {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.dimOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.dimOption:last-child {
+  border-bottom: none;
+}
+.dimOption:hover {
+  background: rgba(26, 54, 93, 0.05);
+}
+.dimOption input {
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+[aria-selected='true'].dimOption {
+  background: rgba(26, 54, 93, 0.06);
+}
+
+.dimNoMatch {
+  display: block;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.dimFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+.dimCount {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.dimClearBtn {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-weight: 600;
+  background: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
