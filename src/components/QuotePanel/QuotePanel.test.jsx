@@ -190,6 +190,23 @@ describe('QuotePanel', () => {
     await waitFor(() => expect(exportAndShare).toHaveBeenCalled());
   });
 
+  it('share button shows Sharing… text while processing', async () => {
+    // Make exportAndShare hang so we can catch the in-progress state
+    const { exportAndShare } = await import('../../services/quoteExporter');
+    let resolve;
+    exportAndShare.mockReturnValueOnce(
+      new Promise((r) => {
+        resolve = r;
+      })
+    );
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByText('Share'));
+    await waitFor(() => {
+      expect(screen.getByText('Sharing…')).toBeInTheDocument();
+    });
+    resolve({ method: 'share', success: true });
+  });
+
   it('does not render when isOpen is false', () => {
     const { container } = render(<QuotePanel {...defaultProps} isOpen={false} />);
     expect(container.firstChild).toBeNull();

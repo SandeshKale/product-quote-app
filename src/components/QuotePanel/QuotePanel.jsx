@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   Edit2,
   RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import { formatCurrency, generateQuoteNumber } from '../../utils/formatters';
 import { exportAndShare } from '../../services/quoteExporter';
@@ -38,31 +39,32 @@ export default function QuotePanel({
   hasAnyOverride,
 }) {
   const templateRef = useRef(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [quoteNumber] = useState(generateQuoteNumber);
   const [quoteTitle, setQuoteTitle] = useState(APP_NAME);
   const [editingTitle, setEditingTitle] = useState(false);
   const [templateType, setTemplateType] = useState('detailed');
 
   const handleShare = useCallback(async () => {
-    setIsGenerating(true);
+    setIsSharing(true); // spinner shows immediately
     try {
       await exportAndShare(templateRef, quoteNumber);
     } catch {
       /* silent */
     } finally {
-      setIsGenerating(false);
+      setIsSharing(false);
     }
   }, [quoteNumber]);
 
   const handleDownload = useCallback(async () => {
-    setIsGenerating(true);
+    setIsDownloading(true); // spinner shows immediately
     try {
-      await exportAndShare(templateRef, quoteNumber, true); // forceDownload = true
+      await exportAndShare(templateRef, quoteNumber, true);
     } catch {
       /* silent */
     } finally {
-      setIsGenerating(false);
+      setIsDownloading(false);
     }
   }, [quoteNumber]);
 
@@ -82,7 +84,6 @@ export default function QuotePanel({
             items={quoteTemplateItems}
             totals={adjustedTotals}
             templateType={templateType}
-            hasOverride={hasAnyOverride}
           />
         </div>
 
@@ -334,11 +335,18 @@ export default function QuotePanel({
               ))}
             </div>
 
-            {/* Share + Download buttons (#6) */}
+            {/* Share + Download buttons — each shows its own spinner immediately */}
             <div className={styles.shareRow}>
-              <button className={styles.shareBtn} onClick={handleShare} disabled={isGenerating}>
-                {isGenerating ? (
-                  <span>Generating…</span>
+              <button
+                className={styles.shareBtn}
+                onClick={handleShare}
+                disabled={isSharing || isDownloading}
+              >
+                {isSharing ? (
+                  <>
+                    <Loader2 size={15} className={styles.spinning} />
+                    <span>Sharing…</span>
+                  </>
                 ) : (
                   <>
                     <Share size={15} />
@@ -349,11 +357,15 @@ export default function QuotePanel({
               <button
                 className={styles.downloadBtn}
                 onClick={handleDownload}
-                disabled={isGenerating}
+                disabled={isSharing || isDownloading}
                 aria-label="Download quote as PNG"
                 title="Download as PNG"
               >
-                <Download size={15} />
+                {isDownloading ? (
+                  <Loader2 size={15} className={styles.spinning} />
+                ) : (
+                  <Download size={15} />
+                )}
               </button>
             </div>
           </>

@@ -210,11 +210,11 @@
   font-weight: 700;
 }
 
-/* Per-item slider */
+/* Per-item slider — ergonomic touch target on mobile */
 .itemSlider {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .itemSliderHeader {
   display: flex;
@@ -237,14 +237,76 @@
   display: flex;
   align-items: center;
   margin-left: auto;
+  padding: 4px; /* bigger tap target */
 }
 .resetBtn:hover {
   color: var(--error);
 }
 .slider {
   width: 100%;
-  accent-color: var(--primary);
   cursor: pointer;
+  /* Tall enough for a thumb on mobile */
+  height: 36px;
+  accent-color: var(--primary);
+  /* Custom cross-browser track + thumb sizing */
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  padding: 8px 0; /* vertical padding grows the touch area */
+}
+/* Track */
+.slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+}
+.slider::-moz-range-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+}
+/* Thumb — 28px on desktop, inherits on mobile via media query */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  margin-top: -11px; /* centre on track */
+  cursor: grab;
+}
+.slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+}
+.slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.slider:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+/* Focus ring */
+.slider:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Filled track colour up to thumb (WebKit only) */
+.slider::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--primary) 0%,
+    var(--primary) var(--val, 0%),
+    var(--border) var(--val, 0%),
+    var(--border) 100%
+  );
 }
 
 .itemFooter {
@@ -412,4 +474,17 @@
   font-weight: 600;
   text-align: right;
   min-width: 80px;
+}
+
+/* Spinner animation for share/download buttons */
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

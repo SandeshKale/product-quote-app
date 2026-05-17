@@ -83,7 +83,7 @@ describe('QuoteTemplate — detailed template', () => {
 
   it('renders Dealer Pre-Tax column header (#20)', () => {
     render(<QuoteTemplate {...baseProps} />);
-    expect(screen.getByText('Pre-Tax')).toBeInTheDocument();
+    expect(screen.getAllByText('Dealer Pre-Tax').length).toBeGreaterThan(0);
   });
 
   it('renders header (no footer per design)', () => {
@@ -92,10 +92,12 @@ describe('QuoteTemplate — detailed template', () => {
     expect(screen.getByText(baseProps.quoteTitle)).toBeInTheDocument();
   });
 
-  it('shows Orig and Adj columns when hasOverride', () => {
-    render(<QuoteTemplate {...baseProps} hasOverride={true} />);
-    expect(screen.getByText('Pre-Tax (Orig)')).toBeInTheDocument();
-    expect(screen.getByText('Pre-Tax (Adj)')).toBeInTheDocument();
+  it('shows plain Dealer Pre-Tax and Dealer Post-Tax column headers (no orig/adj labels)', () => {
+    render(<QuoteTemplate {...baseProps} />);
+    expect(screen.getByText('Dealer Pre-Tax')).toBeInTheDocument();
+    expect(screen.getByText('Dealer Post-Tax')).toBeInTheDocument();
+    expect(screen.queryByText(/Orig/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Adj/)).not.toBeInTheDocument();
   });
 
   it('accepts a ref', () => {
@@ -119,6 +121,6 @@ describe('QuoteTemplate — simple template (#8)', () => {
 
   it('still renders column headers', () => {
     render(<QuoteTemplate {...baseProps} templateType="simple" />);
-    expect(screen.getByText('Pre-Tax')).toBeInTheDocument();
+    expect(screen.getAllByText('Dealer Pre-Tax').length).toBeGreaterThan(0);
   });
 });
