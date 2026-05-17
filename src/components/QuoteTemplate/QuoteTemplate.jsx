@@ -4,15 +4,15 @@ import { formatCurrency, formatDateShort } from '../../utils/formatters';
 import styles from './QuoteTemplate.module.css';
 
 /**
- * QuoteTemplate — captured by html2canvas for sharing.
+ * QuoteTemplate — captured by html2canvas.
  *
- * Rules:
- * - NO quote number, NO marginPercent, NO cost/avgLanding, NO expiry
- * - NO Line Total column (#4 removed)
- * - Dealer Pre-Tax shown per line (#20)
- * - Totals in <tfoot> aligned under each column (#3)
- * - Simple template: plain table only, no header/footer, plain borders (#8)
- * - Detailed template: full header, styled table, footer
+ * When any item has an overridden margin (hasOverride=true):
+ *   - Shows ORIGINAL columns (Dealer Pre-Tax / Post-Tax from Excel)
+ *     alongside ADJUSTED columns (at slider margin)
+ * When no overrides: shows a single set of dealer price columns.
+ *
+ * NO quote number, NO margin labels, NO expiry, NO Line Total column.
+ * marginPercent and avgLanding are never rendered.
  */
 const QuoteTemplate = forwardRef(function QuoteTemplate(
   { quoteTitle, items, totals, templateType, hasOverride },
@@ -23,7 +23,7 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
 
   return (
     <div ref={ref} className={isSimple ? styles.templateSimple : styles.template}>
-      {/* Header — detailed only */}
+      {/* ── Header — detailed only ──────────────────────────────── */}
       {!isSimple && (
         <div className={styles.header}>
           <h1 className={styles.title}>{quoteTitle}</h1>
@@ -32,18 +32,14 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
               <span className={styles.metaLabel}>Date</span>
               <span className={styles.metaValue}>{today}</span>
             </div>
-            {hasOverride && (
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Margin</span>
-                <span className={styles.metaValue}>Adjusted</span>
-              </div>
-            )}
+            {/* No margin/adjusted label — removed per feedback */}
           </div>
         </div>
       )}
 
-      {/* Table */}
+      {/* ── Table ────────────────────────────────────────────────── */}
       <table className={isSimple ? styles.tableSimple : styles.table}>
+        {/* Detailed header */}
         {!isSimple && (
           <thead>
             <tr className={styles.thead}>
@@ -53,11 +49,17 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
               <th className={styles.thQty}>Qty</th>
               <th className={styles.thAmt}>MRP</th>
               <th className={styles.thAmt}>RRP</th>
-              <th className={styles.thAmt}>Dealer Pre-Tax</th>
-              <th className={styles.thAmt}>Dealer Post-Tax</th>
+              {/* Original price columns — always shown */}
+              <th className={styles.thAmt}>Pre-Tax{hasOverride ? ' (Orig)' : ''}</th>
+              <th className={styles.thAmt}>Post-Tax{hasOverride ? ' (Orig)' : ''}</th>
+              {/* Adjusted columns — only when slider was used */}
+              {hasOverride && <th className={`${styles.thAmt} ${styles.thAdj}`}>Pre-Tax (Adj)</th>}
+              {hasOverride && <th className={`${styles.thAmt} ${styles.thAdj}`}>Post-Tax (Adj)</th>}
             </tr>
           </thead>
         )}
+
+        {/* Simple header */}
         {isSimple && (
           <thead>
             <tr className={styles.theadSimple}>
@@ -67,11 +69,14 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
               <th className={styles.thQtyS}>Qty</th>
               <th className={styles.thAmtS}>MRP</th>
               <th className={styles.thAmtS}>RRP</th>
-              <th className={styles.thAmtS}>Dealer Pre-Tax</th>
-              <th className={styles.thAmtS}>Dealer Post-Tax</th>
+              <th className={styles.thAmtS}>Pre-Tax{hasOverride ? ' (Orig)' : ''}</th>
+              <th className={styles.thAmtS}>Post-Tax{hasOverride ? ' (Orig)' : ''}</th>
+              {hasOverride && <th className={styles.thAmtS}>Pre-Tax (Adj)</th>}
+              {hasOverride && <th className={styles.thAmtS}>Post-Tax (Adj)</th>}
             </tr>
           </thead>
         )}
+
         <tbody>
           {items.map((item, idx) => (
             <tr
@@ -98,16 +103,31 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
               <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
                 {formatCurrency(item.rrp)}
               </td>
+
+              {/* Original dealer prices */}
               <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
-                {formatCurrency(item.dealerPricePreTax)}
+                {formatCurrency(item.origDealerPreTax ?? item.dealerPricePreTax)}
               </td>
               <td className={isSimple ? styles.tdAmtS : styles.tdAmt}>
-                {formatCurrency(item.dealerPricePostTax)}
+                {formatCurrency(item.origDealerPostTax ?? item.dealerPricePostTax)}
               </td>
+
+              {/* Adjusted dealer prices — only when hasOverride */}
+              {hasOverride && (
+                <td className={isSimple ? styles.tdAmtS : `${styles.tdAmt} ${styles.adjCell}`}>
+                  {formatCurrency(item.adjDealerPreTax ?? item.dealerPricePreTax)}
+                </td>
+              )}
+              {hasOverride && (
+                <td className={isSimple ? styles.tdAmtS : `${styles.tdAmt} ${styles.adjCell}`}>
+                  {formatCurrency(item.adjDealerPostTax ?? item.dealerPricePostTax)}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
-        {/* Totals below their column (#3) */}
+
+        {/* ── Totals footer — aligned under each column (#3) ─────── */}
         <tfoot>
           <tr className={isSimple ? styles.tfootRowS : styles.tfootRow}>
             <td colSpan={3} className={isSimple ? styles.tfootLabelS : styles.tfootLabel}>
@@ -122,17 +142,37 @@ const QuoteTemplate = forwardRef(function QuoteTemplate(
             <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
               {formatCurrency(totals.totalRRP)}
             </td>
+            {/* Original totals */}
             <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
               {formatCurrency(totals.totalDealerPreTax)}
             </td>
-            <td className={isSimple ? styles.tfootAmtS : `${styles.tfootAmt} ${styles.grandTotal}`}>
+            <td
+              className={
+                isSimple
+                  ? styles.tfootAmtS
+                  : `${styles.tfootAmt} ${hasOverride ? '' : styles.grandTotal}`
+              }
+            >
               {formatCurrency(totals.totalDealerPostTax)}
             </td>
+            {/* Adjusted totals */}
+            {hasOverride && (
+              <td className={isSimple ? styles.tfootAmtS : styles.tfootAmt}>
+                {formatCurrency(totals.totalAdjDealerPreTax ?? totals.totalDealerPreTax)}
+              </td>
+            )}
+            {hasOverride && (
+              <td
+                className={isSimple ? styles.tfootAmtS : `${styles.tfootAmt} ${styles.grandTotal}`}
+              >
+                {formatCurrency(totals.totalAdjDealerPostTax ?? totals.totalDealerPostTax)}
+              </td>
+            )}
           </tr>
         </tfoot>
       </table>
 
-      {/* Footer — detailed only */}
+      {/* ── Footer — detailed only ──────────────────────────────── */}
       {!isSimple && (
         <div className={styles.footer}>
           <p className={styles.footerText}>Generated by {quoteTitle}</p>
@@ -150,6 +190,8 @@ QuoteTemplate.propTypes = {
     totalRRP: PropTypes.number,
     totalDealerPreTax: PropTypes.number,
     totalDealerPostTax: PropTypes.number,
+    totalAdjDealerPreTax: PropTypes.number,
+    totalAdjDealerPostTax: PropTypes.number,
   }).isRequired,
   templateType: PropTypes.string,
   hasOverride: PropTypes.bool,

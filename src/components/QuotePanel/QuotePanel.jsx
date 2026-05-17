@@ -249,11 +249,16 @@ export default function QuotePanel({
 
         {hasItems && (
           <>
-            {/* Weighted margin summary (#5) */}
+            {/* Weighted margin — % + rupee value (#5 / feedback) */}
             {hasAnyOverride && (
               <div className={styles.weightedRow}>
-                <span>Weighted average margin:</span>
-                <span className={styles.weightedVal}>{weightedMarginPct}%</span>
+                <span>Weighted avg margin:</span>
+                <div className={styles.weightedVals}>
+                  <span className={styles.weightedVal}>{weightedMarginPct}%</span>
+                  <span className={styles.weightedRupee}>
+                    {formatCurrency(adjustedTotals.totalMarginValue)}
+                  </span>
+                </div>
               </div>
             )}
 

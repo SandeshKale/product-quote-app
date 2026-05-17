@@ -117,9 +117,21 @@ describe('QuotePanel', () => {
     expect(setItemMargin).toHaveBeenCalledWith('534.84.523', 20);
   });
 
-  it('shows weighted margin when override is active', () => {
-    render(<QuotePanel {...defaultProps} hasAnyOverride={true} weightedMarginPct={18} />);
-    expect(screen.getByText('Weighted average margin:')).toBeInTheDocument();
+  it('shows weighted margin % and rupee value when override is active', () => {
+    render(
+      <QuotePanel
+        {...defaultProps}
+        hasAnyOverride={true}
+        weightedMarginPct={18}
+        adjustedTotals={{
+          ...totals,
+          totalMarginValue: 15000,
+          totalAdjDealerPreTax: 92508,
+          totalAdjDealerPostTax: 109160,
+        }}
+      />
+    );
+    expect(screen.getByText(/Weighted avg margin/i)).toBeInTheDocument();
     expect(screen.getByText('18%')).toBeInTheDocument();
   });
 
