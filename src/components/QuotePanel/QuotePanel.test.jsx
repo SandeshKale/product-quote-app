@@ -195,3 +195,41 @@ describe('QuotePanel', () => {
     expect(container.firstChild).toBeNull();
   });
 });
+
+describe('QuotePanel — download button', () => {
+  it('renders the download button', () => {
+    render(<QuotePanel {...defaultProps} />);
+    expect(screen.getByLabelText(/download quote/i)).toBeInTheDocument();
+  });
+
+  it('calls exportAndShare with forceDownload=true on download click', async () => {
+    const { exportAndShare } = await import('../../services/quoteExporter');
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText(/download quote/i));
+    await waitFor(() => {
+      expect(exportAndShare).toHaveBeenCalledWith(expect.anything(), expect.any(String), true);
+    });
+  });
+});
+
+describe('QuotePanel — title editing', () => {
+  it('shows title input when edit button clicked', async () => {
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText(/edit title/i));
+    await waitFor(() => {
+      // Input should appear
+      expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('closes title input on Enter key', async () => {
+    render(<QuotePanel {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText(/edit title/i));
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.keyDown(inputs[inputs.length - 1], { key: 'Enter' });
+    // Should close — edit button reappears
+    await waitFor(() => {
+      expect(screen.getByLabelText(/edit title/i)).toBeInTheDocument();
+    });
+  });
+});

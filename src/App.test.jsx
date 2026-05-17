@@ -147,3 +147,18 @@ describe('App', () => {
     expect(filterButtons[0]).toBeInTheDocument();
   });
 });
+
+describe('App — dark mode toggle', () => {
+  it('renders dark mode toggle button', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: /dark mode|light mode/i })).toBeInTheDocument();
+  });
+
+  it('toggles dark mode when button clicked', () => {
+    render(<App />);
+    const toggleBtn = screen.getByRole('button', { name: /dark mode|light mode/i });
+    fireEvent.click(toggleBtn);
+    // data-theme should be set on documentElement
+    expect(document.documentElement.getAttribute('data-theme')).toMatch(/dark|light/);
+  });
+});

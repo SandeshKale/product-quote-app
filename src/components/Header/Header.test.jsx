@@ -114,3 +114,53 @@ describe('Header', () => {
     expect(screen.getByText(/Syncing/i)).toBeInTheDocument();
   });
 });
+
+describe('Header — Easter egg', () => {
+  it('renders version badge as a clickable button', () => {
+    render(
+      <Header
+        metadata={mockMeta}
+        status="ready"
+        onRefresh={vi.fn()}
+        darkMode={false}
+        onToggleDark={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('button', { name: /app version/i })).toBeInTheDocument();
+  });
+
+  it('shows tooltip countdown when version is clicked', () => {
+    render(
+      <Header
+        metadata={mockMeta}
+        status="ready"
+        onRefresh={vi.fn()}
+        darkMode={false}
+        onToggleDark={vi.fn()}
+      />
+    );
+    const versionBtn = screen.getByRole('button', { name: /app version/i });
+    fireEvent.click(versionBtn);
+    // After 1 click, tooltip shows "4 more…"
+    expect(versionBtn.title).toBe('4 more…');
+  });
+
+  it('reveals GitHub link after 5 clicks', () => {
+    render(
+      <Header
+        metadata={mockMeta}
+        status="ready"
+        onRefresh={vi.fn()}
+        darkMode={false}
+        onToggleDark={vi.fn()}
+      />
+    );
+    const versionBtn = screen.getByRole('button', { name: /app version/i });
+    for (let i = 0; i < 5; i++) fireEvent.click(versionBtn);
+    expect(screen.getByText(/Built by Sandesh/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Built by Sandesh/i })).toHaveAttribute(
+      'href',
+      'https://github.com/SandeshKale'
+    );
+  });
+});

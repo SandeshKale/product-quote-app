@@ -179,3 +179,41 @@ describe('FilterSidebar', () => {
     expect(setFilters).toHaveBeenCalled();
   });
 });
+
+describe('FilterSidebar — DimensionsDropdown interactions', () => {
+  it('selects a dimension option via checkbox', () => {
+    const setFilters = vi.fn();
+    render(<FilterSidebar {...baseProps} setFilters={setFilters} />);
+    fireEvent.click(screen.getByText('All dimensions'));
+    fireEvent.click(screen.getByRole('checkbox', { name: /chimney/i }));
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('shows selected count in section title and clear section button', () => {
+    const filtersWithDim = { ...defaultFilters, dimensions: ['Chimney - 90cm'] };
+    render(<FilterSidebar {...baseProps} filters={filtersWithDim} />);
+    // Section title shows count
+    expect(screen.getByText(/Dimensions \(1\)/i)).toBeInTheDocument();
+    // Clear dimensions button exists
+    expect(screen.getByRole('button', { name: /clear dimensions/i })).toBeInTheDocument();
+  });
+
+  it('clears dimension selection via ✕ on trigger', () => {
+    const setFilters = vi.fn((fn) => fn({ ...defaultFilters, dimensions: ['Chimney - 90cm'] }));
+    const filtersWithDim = { ...defaultFilters, dimensions: ['Chimney - 90cm'] };
+    render(<FilterSidebar {...baseProps} filters={filtersWithDim} setFilters={setFilters} />);
+    // The ✕ button clears dimensions
+    const clearX = screen.getByRole('button', { name: /clear dimensions/i });
+    fireEvent.click(clearX);
+    expect(setFilters).toHaveBeenCalled();
+  });
+
+  it('closes dropdown on outside click', () => {
+    render(<FilterSidebar {...baseProps} />);
+    fireEvent.click(screen.getByText('All dimensions'));
+    expect(screen.getByPlaceholderText(/search dimensions/i)).toBeInTheDocument();
+    // Simulate outside click
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByPlaceholderText(/search dimensions/i)).not.toBeInTheDocument();
+  });
+});
