@@ -126,20 +126,41 @@ export function useQuote() {
     [items]
   );
 
-  /** Adjusted totals using per-item margin overrides */
-  const adjustedTotals = useMemo(
-    () =>
-      enrichedItems.reduce(
-        (acc, i) => ({
-          totalMRP: acc.totalMRP + i.product.mrp * i.quantity,
-          totalRRP: acc.totalRRP + i.product.rrp * i.quantity,
-          totalDealerPreTax: acc.totalDealerPreTax + i.adjDealerPreTax * i.quantity,
-          totalDealerPostTax: acc.totalDealerPostTax + i.adjDealerPostTax * i.quantity,
-        }),
-        { totalMRP: 0, totalRRP: 0, totalDealerPreTax: 0, totalDealerPostTax: 0 }
-      ),
-    [enrichedItems]
-  );
+  /**
+   * Adjusted totals — carries both original (Excel) and adjusted (slider) dealer prices.
+   * totalMarginValue = adjusted post-tax revenue − avg landing cost (rupee profit).
+   */
+  const adjustedTotals = useMemo(() => {
+    const acc = enrichedItems.reduce(
+      (a, i) => ({
+        totalMRP: a.totalMRP + i.product.mrp * i.quantity,
+        totalRRP: a.totalRRP + i.product.rrp * i.quantity,
+        // Original (Excel) dealer prices
+        totalDealerPreTax: a.totalDealerPreTax + i.origDealerPreTax * i.quantity,
+        totalDealerPostTax: a.totalDealerPostTax + i.origDealerPostTax * i.quantity,
+        // Adjusted (slider) dealer prices
+        totalAdjDealerPreTax: a.totalAdjDealerPreTax + i.adjDealerPreTax * i.quantity,
+        totalAdjDealerPostTax: a.totalAdjDealerPostTax + i.adjDealerPostTax * i.quantity,
+        // AvgLanding cost for margin-value calculation
+        totalLandingCost:
+          a.totalLandingCost +
+          (i.product.avgLanding > 0 ? i.product.avgLanding : i.origDealerPostTax) * // fallback when avgLanding absent
+            i.quantity,
+      }),
+      {
+        totalMRP: 0,
+        totalRRP: 0,
+        totalDealerPreTax: 0,
+        totalDealerPostTax: 0,
+        totalAdjDealerPreTax: 0,
+        totalAdjDealerPostTax: 0,
+        totalLandingCost: 0,
+      }
+    );
+    // Rupee margin = adjusted revenue − cost
+    acc.totalMarginValue = acc.totalAdjDealerPostTax - acc.totalLandingCost;
+    return acc;
+  }, [enrichedItems]);
 
   /**
    * Weighted average effective margin across all items:

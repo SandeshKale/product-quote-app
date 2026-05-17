@@ -1,6 +1,16 @@
 import PropTypes from 'prop-types';
 import { useRef, useState, useCallback } from 'react';
-import { Minus, Plus, Trash2, Share, X, ShoppingCart, Edit2, RotateCcw } from 'lucide-react';
+import {
+  Minus,
+  Plus,
+  Trash2,
+  Share,
+  Download,
+  X,
+  ShoppingCart,
+  Edit2,
+  RotateCcw,
+} from 'lucide-react';
 import { formatCurrency, formatMargin, generateQuoteNumber } from '../../utils/formatters';
 import { exportAndShare } from '../../services/quoteExporter';
 import { APP_NAME } from '../../constants/columnMap';
@@ -38,6 +48,17 @@ export default function QuotePanel({
     setIsGenerating(true);
     try {
       await exportAndShare(templateRef, quoteNumber);
+    } catch {
+      /* silent */
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [quoteNumber]);
+
+  const handleDownload = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      await exportAndShare(templateRef, quoteNumber, true); // forceDownload = true
     } catch {
       /* silent */
     } finally {
@@ -262,43 +283,58 @@ export default function QuotePanel({
               </div>
             )}
 
-            {/* Totals */}
+            {/* Totals — when overridden show original | adjusted split */}
             <div className={styles.totals}>
               {hasAnyOverride && (
                 <div className={styles.totalsHeader}>
-                  <span></span>
+                  <span />
                   <span className={styles.totalsColHdr}>Original</span>
                   <span className={styles.totalsColHdr}>Adjusted</span>
                 </div>
               )}
               {[
-                { label: 'Total MRP', orig: adjustedTotals.totalMRP, adj: adjustedTotals.totalMRP },
-                { label: 'Total RRP', orig: adjustedTotals.totalRRP, adj: adjustedTotals.totalRRP },
+                {
+                  label: 'Total MRP',
+                  orig: adjustedTotals.totalMRP,
+                  adj: adjustedTotals.totalMRP,
+                },
+                {
+                  label: 'Total RRP',
+                  orig: adjustedTotals.totalRRP,
+                  adj: adjustedTotals.totalRRP,
+                },
                 {
                   label: 'Dealer Pre-Tax',
                   orig: adjustedTotals.totalDealerPreTax,
-                  adj: adjustedTotals.totalDealerPreTax,
+                  adj: adjustedTotals.totalAdjDealerPreTax,
                 },
                 {
                   label: 'Dealer Post-Tax',
                   orig: adjustedTotals.totalDealerPostTax,
-                  adj: adjustedTotals.totalDealerPostTax,
+                  adj: adjustedTotals.totalAdjDealerPostTax,
                   final: true,
                 },
-              ].map(({ label, adj, final }) => (
+              ].map(({ label, orig, adj, final }) => (
                 <div
                   key={label}
                   className={`${styles.totalRow} ${final ? styles.totalRowFinal : ''}`}
                 >
                   <span>{label}</span>
-                  <span className={final && hasAnyOverride ? styles.adjVal : ''}>
-                    {formatCurrency(adj)}
-                  </span>
+                  {hasAnyOverride ? (
+                    <>
+                      <span className={styles.origTotalVal}>{formatCurrency(orig)}</span>
+                      <span className={final ? styles.adjVal : styles.adjTotalVal}>
+                        {formatCurrency(adj)}
+                      </span>
+                    </>
+                  ) : (
+                    <span>{formatCurrency(orig)}</span>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Share */}
+            {/* Share + Download buttons (#6) */}
             <div className={styles.shareRow}>
               <button className={styles.shareBtn} onClick={handleShare} disabled={isGenerating}>
                 {isGenerating ? (
@@ -306,9 +342,18 @@ export default function QuotePanel({
                 ) : (
                   <>
                     <Share size={15} />
-                    <span>Share Quote</span>
+                    <span>Share</span>
                   </>
                 )}
+              </button>
+              <button
+                className={styles.downloadBtn}
+                onClick={handleDownload}
+                disabled={isGenerating}
+                aria-label="Download quote as PNG"
+                title="Download as PNG"
+              >
+                <Download size={15} />
               </button>
             </div>
           </>

@@ -186,7 +186,7 @@ describe('QuotePanel', () => {
   it('calls Share when share button clicked', async () => {
     const { exportAndShare } = await import('../../services/quoteExporter');
     render(<QuotePanel {...defaultProps} />);
-    fireEvent.click(screen.getByText('Share Quote'));
+    fireEvent.click(screen.getByText('Share'));
     await waitFor(() => expect(exportAndShare).toHaveBeenCalled());
   });
 

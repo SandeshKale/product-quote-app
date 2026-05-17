@@ -47,8 +47,7 @@ export function useDataSync() {
       setMetadata(cachedMeta);
       setLastSynced(new Date(ts));
       setStatus('ready');
-      // Silently update cache in background for next visit
-      setTimeout(() => load(true), 3000);
+      // No background refresh — user can click Refresh manually when needed
       return;
     }
 

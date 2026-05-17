@@ -1,20 +1,47 @@
 import PropTypes from 'prop-types';
 import { RefreshCw, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { APP_NAME, APP_VERSION } from '../../constants/columnMap';
 import { formatDateTime } from '../../utils/formatters';
 import styles from './Header.module.css';
 
+const EASTER_EGG_CLICKS = 5;
+const GITHUB_URL = 'https://github.com/SandeshKale';
+
 export default function Header({ metadata, status, onRefresh, darkMode, onToggleDark }) {
   const isStale = status === 'stale';
   const isLoading = status === 'loading';
+
+  // Easter egg — click version badge 5× to reveal GitHub link (#8)
+  const [eggClicks, setEggClicks] = useState(0);
+  const [eggVisible, setEggVisible] = useState(false);
+
+  const handleVersionClick = useCallback(() => {
+    setEggClicks((n) => {
+      const next = n + 1;
+      if (next >= EASTER_EGG_CLICKS) {
+        setEggVisible(true);
+        return 0;
+      }
+      return next;
+    });
+  }, []);
 
   return (
     <header className={styles.header}>
       <div className={styles.left}>
         <div className={styles.titleRow}>
           <h1 className={styles.appName}>{APP_NAME}</h1>
-          <span className={styles.version}>v{APP_VERSION}</span>
+          <button
+            className={styles.version}
+            onClick={handleVersionClick}
+            aria-label="App version"
+            title={eggClicks > 0 ? `${EASTER_EGG_CLICKS - eggClicks} more…` : 'App version'}
+          >
+            v{APP_VERSION}
+          </button>
         </div>
+
         <div className={styles.versionBadge}>
           {isStale && <AlertTriangle size={13} className={styles.staleIcon} />}
           <span className={styles.fileName}>{metadata?.fileName ?? 'Loading…'}</span>
@@ -28,6 +55,19 @@ export default function Header({ metadata, status, onRefresh, darkMode, onToggle
           )}
           {isStale && <span className={styles.staleLabel}>(offline — cached)</span>}
         </div>
+
+        {/* Easter egg — revealed after 5 clicks on version badge */}
+        {eggVisible && (
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.easterEgg}
+            onClick={() => setEggVisible(false)}
+          >
+            🐣 Built by Sandesh · github.com/SandeshKale
+          </a>
+        )}
       </div>
 
       <div className={styles.right}>

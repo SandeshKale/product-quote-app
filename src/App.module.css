@@ -28,33 +28,39 @@
   min-height: 0;
 }
 
-.mobileBar {
-  display: none;
-  padding: 10px 14px 0;
-  flex-shrink: 0;
-}
-.filterToggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 7px 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-/* SearchArea is sticky inside .main (the scroll container) (#9) */
+/* SearchArea is sticky — contains both the Filters button + SearchBar (#5) */
 .searchArea {
   position: sticky;
   top: 0;
   z-index: 10;
   background: var(--background);
-  padding: 12px 18px 6px;
+  padding: 10px 16px 6px;
   flex-shrink: 0;
+}
+
+/* Row inside searchArea: filter toggle + search bar side by side */
+.searchRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Filters toggle — hidden on desktop (sidebar always visible), shown on mobile */
+.filterToggle {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
+  height: 44px;
 }
 
 /* Results scroll naturally inside .main — no overflow needed here */
@@ -123,11 +129,11 @@
 }
 
 @media (max-width: 768px) {
-  .mobileBar {
-    display: block;
+  .filterToggle {
+    display: flex;
   }
   .searchArea {
-    padding: 8px 14px 4px;
+    padding: 8px 10px 4px;
   }
   .results {
     padding: 0 14px 80px;

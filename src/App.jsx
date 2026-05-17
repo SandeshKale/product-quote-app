@@ -88,20 +88,20 @@ export default function App() {
         />
 
         <main className={styles.main}>
-          <div className={styles.mobileBar}>
-            <button className={styles.filterToggle} onClick={() => setIsFilterOpen(true)}>
-              <SlidersHorizontal size={15} />
-              <span>Filters</span>
-            </button>
-          </div>
-
+          {/* Sticky bar: Filters button (mobile) + Search bar pin together (#5) */}
           <div className={styles.searchArea}>
-            <SearchBar
-              query={query}
-              onChange={setQuery}
-              resultCount={results.length}
-              isLoading={isLoading}
-            />
+            <div className={styles.searchRow}>
+              <button className={styles.filterToggle} onClick={() => setIsFilterOpen(true)}>
+                <SlidersHorizontal size={15} />
+                <span>Filters</span>
+              </button>
+              <SearchBar
+                query={query}
+                onChange={setQuery}
+                resultCount={results.length}
+                isLoading={isLoading}
+              />
+            </div>
           </div>
 
           <div className={styles.results}>

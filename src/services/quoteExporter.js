@@ -10,7 +10,7 @@ import html2canvas from 'html2canvas';
  * @param {string} quoteNumber - e.g. "QT-1747295834123"
  * @returns {{ method: 'share'|'download', success: boolean, aborted?: boolean }}
  */
-export async function exportAndShare(templateRef, quoteNumber) {
+export async function exportAndShare(templateRef, quoteNumber, forceDownload = false) {
   // Render the off-screen element to canvas at 2× resolution
   const canvas = await html2canvas(templateRef.current, {
     scale: 2,
@@ -24,8 +24,8 @@ export async function exportAndShare(templateRef, quoteNumber) {
   const fileName = `${quoteNumber}.png`;
   const file = new File([blob], fileName, { type: 'image/png' });
 
-  // Try native share (iOS / Android / some desktop browsers)
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  // Try native share (iOS / Android) unless forceDownload is set
+  if (!forceDownload && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
         title: quoteNumber,
