@@ -9,6 +9,18 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
 
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            xlsx: ['xlsx'],
+            html2canvas: ['html2canvas'],
+            react: ['react', 'react-dom'],
+          },
+        },
+      },
+    },
+
     // Dev server: proxy /api/* to googleapis so local dev works
     // without needing `vercel dev`
     server: {
