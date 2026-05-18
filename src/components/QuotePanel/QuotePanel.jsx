@@ -24,7 +24,7 @@ import styles from './QuotePanel.module.css';
  * - Text input accepts up to 1 decimal digit; clamps to [0, 50] on blur
  * - Both controls stay in sync; only propagates clean values to parent
  */
-function MarginControl({ articleCode, effectiveMarginPct, isOverridden, sliderValue, onSetMargin, onResetMargin, styles }) {
+function MarginControl({ articleCode, isOverridden, sliderValue, onSetMargin, onResetMargin, styles }) {
   const [inputVal, setInputVal] = useState(String(sliderValue));
   const isMounted = useRef(false);
 
@@ -108,6 +108,15 @@ function MarginControl({ articleCode, effectiveMarginPct, isOverridden, sliderVa
   );
 }
 
+
+MarginControl.propTypes = {
+  articleCode: PropTypes.string.isRequired,
+  isOverridden: PropTypes.bool.isRequired,
+  sliderValue: PropTypes.number.isRequired,
+  onSetMargin: PropTypes.func.isRequired,
+  onResetMargin: PropTypes.func.isRequired,
+  styles: PropTypes.object.isRequired,
+};
 
 const TEMPLATES = [
   { id: 'detailed', label: 'Detailed' },
@@ -304,7 +313,6 @@ export default function QuotePanel({
                   {/* Per-item margin slider + text input (#5) */}
                   <MarginControl
                     articleCode={product.articleCode}
-                    effectiveMarginPct={effectiveMarginPct}
                     isOverridden={isOverridden}
                     sliderValue={marginOverrides[product.articleCode] ?? origMarginPct}
                     onSetMargin={setItemMargin}
