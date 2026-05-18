@@ -1,4 +1,4 @@
-# Smart Quote Generator
+# Smart Quote Generator 
 
 A production-grade React web app for searching a Google Drive-hosted product catalogue and generating professional quote images that can be shared natively on iOS, Android, and desktop.
 
