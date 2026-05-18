@@ -96,13 +96,13 @@ export function useQuote() {
         return {
           product,
           quantity,
-          effectiveMarginPct: Math.round(effectiveMarginDecimal * 100),
+          effectiveMarginPct: Math.round(effectiveMarginDecimal * 1000) / 10, // 1 decimal
           effectiveMarginDec: effectiveMarginDecimal,
           adjDealerPostTax,
           adjDealerPreTax,
           origDealerPostTax: product.dealerPricePostTax,
           origDealerPreTax: product.dealerPricePreTax,
-          origMarginPct: Math.round(product.marginPercent * 100),
+          origMarginPct: Math.round(product.marginPercent * 1000) / 10, // 1 decimal
           isOverridden,
           adjLineTotal: adjDealerPostTax * quantity,
           origLineTotal: product.dealerPricePostTax * quantity,
@@ -173,7 +173,7 @@ export function useQuote() {
     );
     const totalAdj = enrichedItems.reduce((s, i) => s + i.adjDealerPostTax * i.quantity, 0);
     if (totalAdj === 0) return 0;
-    return Math.round((1 - totalLanding / totalAdj) * 100);
+    return Math.round((1 - totalLanding / totalAdj) * 1000) / 10; // 1 decimal
   }, [enrichedItems]);
 
   const hasAnyOverride = useMemo(() => Object.keys(marginOverrides).length > 0, [marginOverrides]);

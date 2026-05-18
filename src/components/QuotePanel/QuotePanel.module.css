@@ -231,6 +231,41 @@
   color: var(--primary);
   font-weight: 700;
 }
+
+/* Margin text input + % symbol wrapper */
+.marginInputWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.marginTextInput {
+  width: 52px;
+  padding: 3px 18px 3px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: right;
+  background: var(--surface, #fff);
+  color: var(--text-muted);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.marginTextInput:focus {
+  border-color: var(--primary);
+}
+.marginTextInputAdj {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.marginPctSymbol {
+  position: absolute;
+  right: 5px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 .resetBtn {
   background: none;
   color: var(--text-muted);

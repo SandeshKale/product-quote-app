@@ -18,6 +18,97 @@ import { APP_NAME } from '../../constants/columnMap';
 import QuoteTemplate from '../QuoteTemplate/QuoteTemplate';
 import styles from './QuotePanel.module.css';
 
+/**
+ * MarginControl — linked slider + text input for per-item margin.
+ * - Slider step 0.1 (1 decimal via drag)
+ * - Text input accepts up to 1 decimal digit; clamps to [0, 50] on blur
+ * - Both controls stay in sync; only propagates clean values to parent
+ */
+function MarginControl({ articleCode, effectiveMarginPct, isOverridden, sliderValue, onSetMargin, onResetMargin, styles }) {
+  const [inputVal, setInputVal] = useState(String(sliderValue));
+  const isMounted = useRef(false);
+
+  // Keep input in sync when slider value changes from outside (e.g. reset)
+  if (!isMounted.current) isMounted.current = true;
+
+  // Sync inputVal when sliderValue changes externally (reset button)
+  const prevSlider = useRef(sliderValue);
+  if (prevSlider.current !== sliderValue) {
+    prevSlider.current = sliderValue;
+    setInputVal(String(parseFloat(sliderValue).toFixed(1)));
+  }
+
+  const commitValue = useCallback((raw) => {
+    const parsed = parseFloat(raw);
+    if (isNaN(parsed)) return sliderValue;
+    return Math.min(50, Math.max(0, Math.round(parsed * 10) / 10));
+  }, [sliderValue]);
+
+  const handleSliderChange = (e) => {
+    const val = Math.round(Number(e.target.value) * 10) / 10;
+    setInputVal(val.toFixed(1));
+    onSetMargin(articleCode, val);
+  };
+
+  const handleInputChange = (e) => {
+    const raw = e.target.value;
+    // Allow: digits, optional dot, at most 1 decimal digit
+    if (/^\d{0,2}(\.\d?)?$/.test(raw)) {
+      setInputVal(raw);
+      const parsed = parseFloat(raw);
+      if (!isNaN(parsed) && raw.slice(-1) !== '.') {
+        onSetMargin(articleCode, Math.min(50, Math.max(0, Math.round(parsed * 10) / 10)));
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    const clean = commitValue(inputVal);
+    setInputVal(clean.toFixed(1));
+    onSetMargin(articleCode, clean);
+  };
+
+  return (
+    <div className={styles.itemSlider}>
+      <div className={styles.itemSliderHeader}>
+        <span>Margin</span>
+        <div className={styles.marginInputWrapper}>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={inputVal}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            className={`${styles.marginTextInput} ${isOverridden ? styles.marginTextInputAdj : ''}`}
+            aria-label="Margin percentage"
+          />
+          <span className={styles.marginPctSymbol}>%</span>
+        </div>
+        {isOverridden && (
+          <button
+            className={styles.resetBtn}
+            onClick={() => onResetMargin(articleCode)}
+            title="Reset to Excel value"
+            aria-label="Reset margin"
+          >
+            <RotateCcw size={11} />
+          </button>
+        )}
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={50}
+        step={0.1}
+        value={sliderValue}
+        onChange={handleSliderChange}
+        className={styles.slider}
+      />
+    </div>
+  );
+}
+
+
 const TEMPLATES = [
   { id: 'detailed', label: 'Detailed' },
   { id: 'simple', label: 'Simple' },
@@ -110,6 +201,7 @@ export default function QuotePanel({
           {editingTitle ? (
             <input
               className={styles.titleInput}
+              aria-label="Quote title"
               value={quoteTitle}
               onChange={(e) => setQuoteTitle(e.target.value)}
               onBlur={() => setEditingTitle(false)}
@@ -163,8 +255,8 @@ export default function QuotePanel({
                 origDealerPostTax,
                 origDealerPreTax,
                 isOverridden,
+                origMarginPct,
               } = ei;
-              const origMarginPct = Math.round(product.marginPercent * 100);
 
               return (
                 <div
@@ -192,13 +284,13 @@ export default function QuotePanel({
                       <span className={styles.priceHdr}>Post-Tax</span>
                     </div>
                     <div className={styles.priceCol}>
-                      <span className={styles.priceHdr}>Original ({origMarginPct}%)</span>
+                      <span className={styles.priceHdr}>Original ({Number(origMarginPct).toFixed(1)}%)</span>
                       <span className={styles.priceVal}>{formatCurrency(origDealerPreTax)}</span>
                       <span className={styles.priceVal}>{formatCurrency(origDealerPostTax)}</span>
                     </div>
                     {isOverridden && (
                       <div className={styles.priceCol}>
-                        <span className={styles.priceHdr}>Adjusted ({effectiveMarginPct}%)</span>
+                        <span className={styles.priceHdr}>Adjusted ({Number(effectiveMarginPct).toFixed(1)}%)</span>
                         <span className={`${styles.priceVal} ${styles.adjVal}`}>
                           {formatCurrency(adjDealerPreTax)}
                         </span>
@@ -209,36 +301,16 @@ export default function QuotePanel({
                     )}
                   </div>
 
-                  {/* Per-item margin slider (#5) */}
-                  <div className={styles.itemSlider}>
-                    <div className={styles.itemSliderHeader}>
-                      <span>Margin</span>
-                      <span
-                        className={`${styles.marginVal} ${isOverridden ? styles.marginValAdj : ''}`}
-                      >
-                        {effectiveMarginPct}%
-                      </span>
-                      {isOverridden && (
-                        <button
-                          className={styles.resetBtn}
-                          onClick={() => resetItemMargin(product.articleCode)}
-                          title="Reset to Excel value"
-                          aria-label="Reset margin"
-                        >
-                          <RotateCcw size={11} />
-                        </button>
-                      )}
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={50}
-                      step={0.5}
-                      value={marginOverrides[product.articleCode] ?? origMarginPct}
-                      onChange={(e) => setItemMargin(product.articleCode, Number(e.target.value))}
-                      className={styles.slider}
-                    />
-                  </div>
+                  {/* Per-item margin slider + text input (#5) */}
+                  <MarginControl
+                    articleCode={product.articleCode}
+                    effectiveMarginPct={effectiveMarginPct}
+                    isOverridden={isOverridden}
+                    sliderValue={marginOverrides[product.articleCode] ?? origMarginPct}
+                    onSetMargin={setItemMargin}
+                    onResetMargin={resetItemMargin}
+                    styles={styles}
+                  />
 
                   {/* Qty + line total */}
                   <div className={styles.itemFooter}>
@@ -276,7 +348,7 @@ export default function QuotePanel({
               <div className={styles.weightedRow}>
                 <span>Weighted avg margin:</span>
                 <div className={styles.weightedVals}>
-                  <span className={styles.weightedVal}>{weightedMarginPct}%</span>
+                  <span className={styles.weightedVal}>{weightedMarginPct.toFixed(1)}%</span>
                   <span className={styles.weightedRupee}>
                     {formatCurrency(adjustedTotals.totalMarginValue)}
                   </span>

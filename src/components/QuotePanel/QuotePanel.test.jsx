@@ -96,13 +96,13 @@ describe('QuotePanel', () => {
 
   it('shows original price column', () => {
     render(<QuotePanel {...defaultProps} />);
-    expect(screen.getByText(/Original \(13%\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Original \(13.0%\)/i)).toBeInTheDocument();
   });
 
   it('shows Adjusted column when item is overridden', () => {
     const overriddenItem = { ...enrichedItem, isOverridden: true, effectiveMarginPct: 20 };
     render(<QuotePanel {...defaultProps} enrichedItems={[overriddenItem]} hasAnyOverride={true} />);
-    expect(screen.getByText(/Adjusted \(20%\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Adjusted \(20\.0%\)/i)).toBeInTheDocument();
   });
 
   it('renders per-item margin slider', () => {
@@ -132,7 +132,7 @@ describe('QuotePanel', () => {
       />
     );
     expect(screen.getByText(/Weighted avg margin/i)).toBeInTheDocument();
-    expect(screen.getByText('18%')).toBeInTheDocument();
+    expect(screen.getByText('18.0%')).toBeInTheDocument();
   });
 
   it('shows totals', () => {
@@ -242,8 +242,8 @@ describe('QuotePanel — title editing', () => {
   it('closes title input on Enter key', async () => {
     render(<QuotePanel {...defaultProps} />);
     fireEvent.click(screen.getByLabelText(/edit title/i));
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.keyDown(inputs[inputs.length - 1], { key: 'Enter' });
+    const titleInput = screen.getByLabelText(/quote title/i);
+    fireEvent.keyDown(titleInput, { key: 'Enter' });
     // Should close — edit button reappears
     await waitFor(() => {
       expect(screen.getByLabelText(/edit title/i)).toBeInTheDocument();
