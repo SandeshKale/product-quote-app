@@ -24,7 +24,14 @@ import styles from './QuotePanel.module.css';
  * - Text input accepts up to 1 decimal digit; clamps to [0, 50] on blur
  * - Both controls stay in sync; only propagates clean values to parent
  */
-function MarginControl({ articleCode, isOverridden, sliderValue, onSetMargin, onResetMargin, styles }) {
+function MarginControl({
+  articleCode,
+  isOverridden,
+  sliderValue,
+  onSetMargin,
+  onResetMargin,
+  styles,
+}) {
   const [inputVal, setInputVal] = useState(String(sliderValue));
   const isMounted = useRef(false);
 
@@ -38,11 +45,14 @@ function MarginControl({ articleCode, isOverridden, sliderValue, onSetMargin, on
     setInputVal(String(parseFloat(sliderValue).toFixed(1)));
   }
 
-  const commitValue = useCallback((raw) => {
-    const parsed = parseFloat(raw);
-    if (isNaN(parsed)) return sliderValue;
-    return Math.min(50, Math.max(0, Math.round(parsed * 10) / 10));
-  }, [sliderValue]);
+  const commitValue = useCallback(
+    (raw) => {
+      const parsed = parseFloat(raw);
+      if (isNaN(parsed)) return sliderValue;
+      return Math.min(50, Math.max(0, Math.round(parsed * 10) / 10));
+    },
+    [sliderValue]
+  );
 
   const handleSliderChange = (e) => {
     const val = Math.round(Number(e.target.value) * 10) / 10;
@@ -107,7 +117,6 @@ function MarginControl({ articleCode, isOverridden, sliderValue, onSetMargin, on
     </div>
   );
 }
-
 
 MarginControl.propTypes = {
   articleCode: PropTypes.string.isRequired,
@@ -293,13 +302,17 @@ export default function QuotePanel({
                       <span className={styles.priceHdr}>Post-Tax</span>
                     </div>
                     <div className={styles.priceCol}>
-                      <span className={styles.priceHdr}>Original ({Number(origMarginPct).toFixed(1)}%)</span>
+                      <span className={styles.priceHdr}>
+                        Original ({Number(origMarginPct).toFixed(1)}%)
+                      </span>
                       <span className={styles.priceVal}>{formatCurrency(origDealerPreTax)}</span>
                       <span className={styles.priceVal}>{formatCurrency(origDealerPostTax)}</span>
                     </div>
                     {isOverridden && (
                       <div className={styles.priceCol}>
-                        <span className={styles.priceHdr}>Adjusted ({Number(effectiveMarginPct).toFixed(1)}%)</span>
+                        <span className={styles.priceHdr}>
+                          Adjusted ({Number(effectiveMarginPct).toFixed(1)}%)
+                        </span>
                         <span className={`${styles.priceVal} ${styles.adjVal}`}>
                           {formatCurrency(adjDealerPreTax)}
                         </span>
