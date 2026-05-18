@@ -99,7 +99,7 @@ function MarginControl({ articleCode, effectiveMarginPct, isOverridden, sliderVa
         type="range"
         min={0}
         max={50}
-        step={0.1}
+        step={0.5}
         value={sliderValue}
         onChange={handleSliderChange}
         className={styles.slider}
