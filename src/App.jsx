@@ -6,6 +6,8 @@ import FilterSidebar from './components/FilterSidebar/FilterSidebar';
 import ProductList from './components/ProductList/ProductList';
 import QuotePanel from './components/QuotePanel/QuotePanel';
 import { useDataSync } from './hooks/useDataSync';
+import { useAuth } from './hooks/useAuth';
+import LoginPage from './components/LoginPage/LoginPage';
 import { useSearch } from './hooks/useSearch';
 import { useQuote } from './hooks/useQuote';
 import { formatCurrency } from './utils/formatters';
@@ -13,6 +15,7 @@ import './index.css';
 import styles from './App.module.css';
 
 export default function App() {
+  const { isAuthed, login, logout, error: authError, isLoading: authLoading } = useAuth();
   const { products, metadata, status, refresh } = useDataSync();
   const {
     query,
@@ -65,6 +68,10 @@ export default function App() {
 
   const isLoading = status === 'loading' || status === 'idle';
 
+  if (!isAuthed) {
+    return <LoginPage onLogin={login} error={authError} isLoading={authLoading} />;
+  }
+
   return (
     <div className={styles.app}>
       <Header
@@ -73,6 +80,7 @@ export default function App() {
         onRefresh={refresh}
         darkMode={darkMode}
         onToggleDark={() => setDarkMode((d) => !d)}
+        onLogout={logout}
       />
 
       <div className={styles.body}>

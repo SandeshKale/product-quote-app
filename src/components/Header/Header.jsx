@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { RefreshCw, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Sun, Moon, LogOut } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { APP_NAME, APP_VERSION } from '../../constants/columnMap';
 import { formatDateTime } from '../../utils/formatters';
@@ -8,7 +8,7 @@ import styles from './Header.module.css';
 const EASTER_EGG_CLICKS = 5;
 const GITHUB_URL = 'https://github.com/SandeshKale';
 
-export default function Header({ metadata, status, onRefresh, darkMode, onToggleDark }) {
+export default function Header({ metadata, status, onRefresh, darkMode, onToggleDark, onLogout }) {
   const isStale = status === 'stale';
   const isLoading = status === 'loading';
 
@@ -80,6 +80,14 @@ export default function Header({ metadata, status, onRefresh, darkMode, onToggle
           {darkMode ? <Sun size={17} /> : <Moon size={17} />}
         </button>
         <button
+          className={styles.logoutBtn}
+          onClick={onLogout}
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut size={15} />
+        </button>
+        <button
           className={styles.refreshBtn}
           onClick={onRefresh}
           disabled={isLoading}
@@ -99,6 +107,7 @@ Header.propTypes = {
   onRefresh: PropTypes.func.isRequired,
   darkMode: PropTypes.bool.isRequired,
   onToggleDark: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
 };
 
 Header.displayName = 'Header';

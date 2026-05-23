@@ -16,6 +16,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText(/Smart Quote Generator/i)).toBeInTheDocument();
@@ -29,6 +30,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText('TestData.xlsx')).toBeInTheDocument();
@@ -42,6 +44,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText(/Updated/i)).toBeInTheDocument();
@@ -55,6 +58,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText('Loading…')).toBeInTheDocument();
@@ -68,6 +72,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText(/cached/i)).toBeInTheDocument();
@@ -82,6 +87,7 @@ describe('Header', () => {
         onRefresh={onRefresh}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
@@ -96,6 +102,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByRole('button', { name: /refresh/i })).toBeDisabled();
@@ -109,6 +116,7 @@ describe('Header', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByText(/Syncing/i)).toBeInTheDocument();
@@ -124,6 +132,7 @@ describe('Header — Easter egg', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     expect(screen.getByRole('button', { name: /app version/i })).toBeInTheDocument();
@@ -137,6 +146,7 @@ describe('Header — Easter egg', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     const versionBtn = screen.getByRole('button', { name: /app version/i });
@@ -153,6 +163,7 @@ describe('Header — Easter egg', () => {
         onRefresh={vi.fn()}
         darkMode={false}
         onToggleDark={vi.fn()}
+        onLogout={vi.fn()}
       />
     );
     const versionBtn = screen.getByRole('button', { name: /app version/i });

@@ -52,6 +52,16 @@ vi.mock('./services/quoteExporter', () => ({
 
 vi.mock('html2canvas', () => ({ default: vi.fn() }));
 
+vi.mock('./hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({
+    isAuthed: true, // bypass login gate in all App tests
+    login: vi.fn(),
+    logout: vi.fn(),
+    error: '',
+    isLoading: false,
+  })),
+}));
+
 beforeEach(() => {
   // No fake timers here — waitFor relies on real setTimeout to poll
 });

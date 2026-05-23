@@ -92,6 +92,26 @@
 .iconBtn:hover {
   background: rgba(255, 255, 255, 0.22);
 }
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.logoutBtn:hover {
+  color: var(--error, #e53e3e);
+  background: rgba(229, 62, 62, 0.08);
+}
+
 .refreshBtn {
   display: flex;
   align-items: center;
@@ -144,6 +164,26 @@
   .refreshLabel {
     display: none;
   }
+
+  .logoutBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition:
+      color 0.15s,
+      background 0.15s;
+  }
+  .logoutBtn:hover {
+    color: var(--error, #e53e3e);
+    background: rgba(229, 62, 62, 0.08);
+  }
+
   .refreshBtn {
     padding: 7px 9px;
   }
