@@ -1,43 +1,38 @@
 /**
  * Vercel serverless function: POST /api/auth
  *
- * Compares the submitted passphrase against a SHA-256 hash stored in
- * VITE_APP_PASSPHRASE_HASH env var. The hash never ships to the client bundle.
+ * Validates username + password against env vars stored in Vercel dashboard.
+ * Credentials never reach the client bundle.
  *
- * Body: { passphrase: string }
- * Response 200: { ok: true,  token: <32-char hex session token> }
- * Response 401: { ok: false, error: 'Invalid passphrase' }
+ * Env vars required (set in Vercel dashboard / GitHub Actions secrets):
+ *   APP_USERNAME  — e.g. mbmbinu
+ *   APP_PASSWORD  — your chosen password
  *
- * To generate the hash for your .env.local / Vercel dashboard:
- *   node -e "const c=require('crypto');console.log(c.createHash('sha256').update('YOUR_PASS').digest('hex'))"
+ * Body:    { username: string, password: string }
+ * 200 OK:  { ok: true }
+ * 401:     { ok: false, error: 'Invalid credentials' }
  */
-
-import { createHash, randomBytes } from 'crypto';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const expectedHash = process.env.VITE_APP_PASSPHRASE_HASH;
-  if (!expectedHash) {
-    return res.status(500).json({ error: 'Auth not configured — set VITE_APP_PASSPHRASE_HASH' });
+  const { APP_USERNAME, APP_PASSWORD } = process.env;
+  if (!APP_USERNAME || !APP_PASSWORD) {
+    return res.status(500).json({ error: 'Auth not configured — set APP_USERNAME and APP_PASSWORD' });
   }
 
-  const { passphrase } = req.body || {};
-  if (!passphrase || typeof passphrase !== 'string') {
-    return res.status(400).json({ ok: false, error: 'Missing passphrase' });
+  const { username, password } = req.body || {};
+
+  if (
+    typeof username !== 'string' ||
+    typeof password !== 'string' ||
+    username.trim() !== APP_USERNAME ||
+    password !== APP_PASSWORD
+  ) {
+    await new Promise((r) => setTimeout(r, 400)); // slow brute force
+    return res.status(401).json({ ok: false, error: 'Invalid credentials' });
   }
 
-  const submitted = createHash('sha256').update(passphrase.trim()).digest('hex');
-
-  if (submitted !== expectedHash) {
-    // Constant-time-ish delay to slow brute force
-    await new Promise((r) => setTimeout(r, 400));
-    return res.status(401).json({ ok: false, error: 'Invalid passphrase' });
-  }
-
-  // Issue a random session token — stored in sessionStorage client-side
-  const token = randomBytes(16).toString('hex');
-  return res.status(200).json({ ok: true, token });
+  return res.status(200).json({ ok: true });
 }

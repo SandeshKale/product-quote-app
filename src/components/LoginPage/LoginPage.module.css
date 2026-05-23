@@ -180,3 +180,16 @@
     transform: rotate(360deg);
   }
 }
+
+.inputReadonly {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  background: var(--surface-raised, #f8fafc);
+  color: var(--text-muted);
+  cursor: default;
+  outline: none;
+}

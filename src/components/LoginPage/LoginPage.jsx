@@ -4,25 +4,25 @@ import { Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { APP_NAME } from '../../constants/columnMap';
 import styles from './LoginPage.module.css';
 
-export default function LoginPage({ onLogin, error, isLoading }) {
-  const [passphrase, setPassphrase] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const inputRef = useRef(null);
+const FIXED_USERNAME = 'mbmbinu';
 
-  // Auto-focus input on mount
+export default function LoginPage({ onLogin, error, isLoading }) {
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const passwordRef = useRef(null);
+
   useEffect(() => {
-    inputRef.current?.focus();
+    passwordRef.current?.focus();
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (passphrase.trim()) onLogin(passphrase);
+    if (password.trim()) onLogin(FIXED_USERNAME, password);
   };
 
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        {/* Logo / brand */}
         <div className={styles.brand}>
           <div className={styles.iconWrap}>
             <Lock size={22} strokeWidth={2} />
@@ -31,21 +31,36 @@ export default function LoginPage({ onLogin, error, isLoading }) {
           <p className={styles.tagline}>Sign in to continue</p>
         </div>
 
-        {/* Form */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          {/* Username — read-only display */}
           <div className={styles.fieldWrap}>
-            <label className={styles.label} htmlFor="passphrase">
-              Passphrase
+            <label className={styles.label} htmlFor="username">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              className={styles.inputReadonly}
+              value={FIXED_USERNAME}
+              readOnly
+              aria-readonly="true"
+            />
+          </div>
+
+          {/* Password */}
+          <div className={styles.fieldWrap}>
+            <label className={styles.label} htmlFor="password">
+              Password
             </label>
             <div className={styles.inputRow}>
               <input
-                ref={inputRef}
-                id="passphrase"
+                ref={passwordRef}
+                id="password"
                 type={showPass ? 'text' : 'password'}
                 className={`${styles.input} ${error ? styles.inputError : ''}`}
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="Enter passphrase"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
                 autoComplete="current-password"
                 disabled={isLoading}
               />
@@ -53,7 +68,7 @@ export default function LoginPage({ onLogin, error, isLoading }) {
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPass((v) => !v)}
-                aria-label={showPass ? 'Hide passphrase' : 'Show passphrase'}
+                aria-label={showPass ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -65,7 +80,7 @@ export default function LoginPage({ onLogin, error, isLoading }) {
           <button
             type="submit"
             className={styles.submitBtn}
-            disabled={isLoading || !passphrase.trim()}
+            disabled={isLoading || !password.trim()}
           >
             {isLoading ? (
               <span className={styles.spinner} aria-label="Signing in" />
