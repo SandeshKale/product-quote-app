@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, generateQuoteNumber } from '../../utils/formatters';
 import { exportAndShare } from '../../services/quoteExporter';
-import { APP_NAME } from '../../constants/columnMap';
+
 import QuoteTemplate from '../QuoteTemplate/QuoteTemplate';
 import styles from './QuotePanel.module.css';
 
@@ -151,7 +151,7 @@ export default function QuotePanel({
   const [isSharing, setIsSharing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [quoteNumber] = useState(generateQuoteNumber);
-  const [quoteTitle, setQuoteTitle] = useState(APP_NAME);
+  const [quoteTitle, setQuoteTitle] = useState('Quote');
   const [editingTitle, setEditingTitle] = useState(false);
   const [templateType, setTemplateType] = useState('detailed');
 
